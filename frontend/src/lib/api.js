@@ -63,3 +63,24 @@ export async function getStreamToken() {
   const response = await axiosInstance.get("/chat/token");
   return response.data;
 }
+
+export async function ensureStreamUser(userId) {
+  const response = await axiosInstance.post(`/chat/ensure-user/${userId}`);
+  return response.data;
+}
+
+// Username-related functions
+export async function checkUsernameAvailability(username) {
+  const response = await axiosInstance.get(`/auth/check-username/${username}`);
+  return response.data;
+}
+
+export async function searchUserByUsername(username) {
+  const response = await axiosInstance.get(`/auth/search-user/${username}`);
+  return response.data;
+}
+
+export async function sendFriendRequestByUsername(username) {
+  const response = await axiosInstance.post(`/users/friend-request/username/${username}`);
+  return response.data;
+}

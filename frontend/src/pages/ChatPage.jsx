@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import useAuthUser from "../hooks/useAuthUser";
 import { useQuery } from "@tanstack/react-query";
-import { getStreamToken } from "../lib/api";
+import { getStreamToken, ensureStreamUser } from "../lib/api";
 
 import {
   Channel,
@@ -38,21 +38,30 @@ const ChatPage = () => {
 
   useEffect(() => {
     const initChat = async () => {
-      if (!tokenData?.token || !authUser) return;
+      if (!tokenData?.token || !authUser || !targetUserId || chatClient) return; // Prevent multiple connections
 
       try {
         console.log("Initializing stream chat client...");
 
         const client = StreamChat.getInstance(STREAM_API_KEY);
 
-        await client.connectUser(
-          {
-            id: authUser._id,
-            name: authUser.fullName,
-            image: authUser.profilePic,
-          },
-          tokenData.token
-        );
+        // Check if user is already connected
+        if (client.userID) {
+          console.log("User already connected, skipping connectUser");
+        } else {
+          await client.connectUser(
+            {
+              id: authUser._id,
+              name: authUser.fullName,
+              image: authUser.profilePic,
+            },
+            tokenData.token
+          );
+        }
+
+        // Ensure the target user exists in Stream before creating channel
+        console.log("Ensuring target user exists in Stream...");
+        await ensureStreamUser(targetUserId);
 
         //
         const channelId = [authUser._id, targetUserId].sort().join("-");
@@ -78,7 +87,14 @@ const ChatPage = () => {
     };
 
     initChat();
-  }, [tokenData, authUser, targetUserId]);
+
+    // Cleanup function
+    return () => {
+      if (chatClient) {
+        chatClient.disconnectUser();
+      }
+    };
+  }, [tokenData?.token, authUser?._id, targetUserId]); // More specific dependencies
 
   const handleVideoCall = () => {
     if (channel) {

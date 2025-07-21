@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Eye, EyeOff, Check, X } from "lucide-react";
 import { Link } from "react-router";
 
 import useSignUp from "../hooks/useSignUp";
@@ -8,8 +8,17 @@ const SignUpPage = () => {
   const [signupData, setSignupData] = useState({
     fullName: "",
     email: "",
+    username: "",
     password: "",
   });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [usernameCheck, setUsernameCheck] = useState({
+    checking: false,
+    available: null,
+    message: "",
+  });
+  const [usernameSuggestions, setUsernameSuggestions] = useState([]);
 
   // This is how we did it at first, without using our custom hook
   // const queryClient = useQueryClient();
@@ -25,8 +34,92 @@ const SignUpPage = () => {
   // This is how we did it using our custom hook - optimized version
   const { isPending, error, signupMutation } = useSignUp();
 
+  // Username availability check - simplified
+  const checkUsernameAvailability = async (username) => {
+    if (!username || username.length < 1) {
+      setUsernameCheck({ checking: false, available: null, message: "" });
+      setUsernameSuggestions([]);
+      return;
+    }
+
+    setUsernameCheck({ checking: true, available: null, message: "" });
+
+    try {
+      const response = await fetch(`http://localhost:5001/api/auth/check-username/${username}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const data = await response.json();
+      
+      setUsernameCheck({
+        checking: false,
+        available: data.available,
+        message: data.message,
+      });
+
+      // Generate suggestions if username is not available
+      if (!data.available && data.message === "Username already taken") {
+        generateUsernameSuggestions(username);
+      } else {
+        setUsernameSuggestions([]);
+      }
+    } catch (error) {
+      console.error("Username check error:", error);
+      setUsernameCheck({
+        checking: false,
+        available: null,
+        message: "Couldn't check username availability",
+      });
+      setUsernameSuggestions([]);
+    }
+  };
+
+  const generateUsernameSuggestions = (baseUsername) => {
+    const suggestions = [];
+    const numbers = ['01', '02', '07', '99', '123'];
+    const suffixes = ['_dev', '_code', '_tech', '.dev', '.js'];
+    
+    // Add numbers
+    numbers.forEach(num => {
+      suggestions.push(`${baseUsername}${num}`);
+      suggestions.push(`${baseUsername}_${num}`);
+    });
+    
+    // Add suffixes
+    suffixes.forEach(suffix => {
+      suggestions.push(`${baseUsername}${suffix}`);
+    });
+    
+    // Mix some combinations
+    suggestions.push(`dev_${baseUsername}`);
+    suggestions.push(`${baseUsername}.official`);
+    
+    setUsernameSuggestions(suggestions.slice(0, 6)); // Show only 6 suggestions
+  };
+
+  const selectSuggestion = (suggestion) => {
+    setSignupData({ ...signupData, username: suggestion });
+    setUsernameSuggestions([]);
+    checkUsernameAvailability(suggestion);
+  };
+
+  const handleUsernameChange = (e) => {
+    const username = e.target.value;
+    setSignupData({ ...signupData, username });
+    
+    // Debounce username check
+    clearTimeout(window.usernameCheckTimeout);
+    window.usernameCheckTimeout = setTimeout(() => {
+      checkUsernameAvailability(username);
+    }, 300); // Reduced debounce time for better UX
+  };
+
   const handleSignup = (e) => {
     e.preventDefault();
+    // Simple validation - just submit and let backend handle username uniqueness
     signupMutation(signupData);
   };
 
@@ -59,7 +152,7 @@ const SignUpPage = () => {
                 <div>
                   <h2 className="text-xl font-semibold">Create an Account</h2>
                   <p className="text-sm opacity-70">
-                    Join Chhavinity and start your language learning adventure!
+                    Join Chhavinity and connect with fellow developers!
                   </p>
                 </div>
 
@@ -78,6 +171,73 @@ const SignUpPage = () => {
                       required
                     />
                   </div>
+                  
+                  {/* USERNAME */}
+                  <div className="form-control w-full">
+                    <label className="label">
+                      <span className="label-text">Username</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="dev_07"
+                        className={`input input-bordered w-full pr-10 ${
+                          usernameCheck.available === true ? 'input-success' : 
+                          usernameCheck.available === false ? 'input-error' : ''
+                        }`}
+                        value={signupData.username}
+                        onChange={handleUsernameChange}
+                        required
+                        maxLength={30}
+                        pattern="[a-zA-Z0-9._]+"
+                        title="Username can contain letters, numbers, periods, and underscores"
+                      />
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                        {usernameCheck.checking && (
+                          <span className="loading loading-spinner loading-sm"></span>
+                        )}
+                        {!usernameCheck.checking && usernameCheck.available === true && (
+                          <Check className="size-5 text-success" />
+                        )}
+                        {!usernameCheck.checking && usernameCheck.available === false && (
+                          <X className="size-5 text-error" />
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Username Status Message */}
+                    {usernameCheck.message && (
+                      <p className={`text-xs mt-1 ${
+                        usernameCheck.available ? 'text-success' : 'text-error'
+                      }`}>
+                        {usernameCheck.message}
+                      </p>
+                    )}
+                    
+                    {/* Username Suggestions */}
+                    {usernameSuggestions.length > 0 && (
+                      <div className="mt-2">
+                        <p className="text-xs text-base-content/70 mb-2">Suggestions:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {usernameSuggestions.map((suggestion) => (
+                            <button
+                              key={suggestion}
+                              type="button"
+                              onClick={() => selectSuggestion(suggestion)}
+                              className="badge badge-outline hover:badge-primary cursor-pointer text-xs"
+                            >
+                              {suggestion}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    <p className="text-xs opacity-70 mt-1">
+                      Letters, numbers, periods, and underscores. Up to 30 characters.
+                    </p>
+                  </div>
+
                   {/* EMAIL */}
                   <div className="form-control w-full">
                     <label className="label">
@@ -97,16 +257,29 @@ const SignUpPage = () => {
                     <label className="label">
                       <span className="label-text">Password</span>
                     </label>
-                    <input
-                      type="password"
-                      placeholder="********"
-                      className="input input-bordered w-full"
-                      value={signupData.password}
-                      onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
-                      required
-                    />
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="********"
+                        className="input input-bordered w-full pr-10"
+                        value={signupData.password}
+                        onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="absolute inset-y-0 right-0 flex items-center pr-3"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="size-5 opacity-70" />
+                        ) : (
+                          <Eye className="size-5 opacity-70" />
+                        )}
+                      </button>
+                    </div>
                     <p className="text-xs opacity-70 mt-1">
-                      Password must be at least 7 characters long
+                      Password must be at least 6 characters long
                     </p>
                   </div>
 

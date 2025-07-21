@@ -1,11 +1,14 @@
 import { Link, useLocation } from "react-router";
 import useAuthUser from "../hooks/useAuthUser";
-import { BellIcon, HomeIcon, Sparkles, UsersIcon } from "lucide-react";
+import { BellIcon, HomeIcon, Sparkles, UsersIcon, Edit2Icon } from "lucide-react";
+import { useState } from "react";
+import EditProfileModal from "./EditProfileModal";
 
 const Sidebar = () => {
   const { authUser } = useAuthUser();
   const location = useLocation();
   const currentPath = location.pathname;
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   return (
     <aside className="w-64 bg-base-200 border-r border-base-300 hidden lg:flex flex-col h-screen sticky top-0">
@@ -26,7 +29,7 @@ const Sidebar = () => {
           }`}
         >
           <HomeIcon className="size-5 text-base-content opacity-70" />
-          <span>Home</span>
+          <span>My Friends</span>
         </Link>
 
         <Link
@@ -36,7 +39,7 @@ const Sidebar = () => {
           }`}
         >
           <UsersIcon className="size-5 text-base-content opacity-70" />
-          <span>Friends</span>
+          <span>Find Friends</span>
         </Link>
 
         <Link
@@ -65,8 +68,22 @@ const Sidebar = () => {
               Online
             </p>
           </div>
+          <button
+            className="btn btn-ghost btn-sm btn-circle hover:bg-base-300"
+            onClick={() => setIsEditModalOpen(true)}
+            title="Edit Profile"
+          >
+            <Edit2Icon className="size-4" />
+          </button>
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      <EditProfileModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        user={authUser}
+      />
     </aside>
   );
 };

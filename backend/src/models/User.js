@@ -12,6 +12,15 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    username: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+      minlength: 1,
+      maxlength: 30,
+    },
     password: {
       type: String,
       required: true,
@@ -25,13 +34,13 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    nativeLanguage: {
-      type: String,
-      default: "",
+    proficientTechStack: {
+      type: [String],
+      default: [],
     },
-    learningLanguage: {
-      type: String,
-      default: "",
+    learningTechStack: {
+      type: [String],
+      default: [],
     },
     location: {
       type: String,

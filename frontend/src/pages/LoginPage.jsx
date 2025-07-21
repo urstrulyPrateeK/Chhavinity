@@ -1,13 +1,15 @@
 import { useState } from "react";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router";
 import useLogin from "../hooks/useLogin";
 
 const LoginPage = () => {
   const [loginData, setLoginData] = useState({
-    email: "",
+    emailOrUsername: "",
     password: "",
   });
+
+  const [showPassword, setShowPassword] = useState(false);
 
   // This is how we did it at first, without using our custom hook
   // const queryClient = useQueryClient();
@@ -64,14 +66,14 @@ const LoginPage = () => {
                 <div className="flex flex-col gap-3">
                   <div className="form-control w-full space-y-2">
                     <label className="label">
-                      <span className="label-text">Email</span>
+                      <span className="label-text">Email or Username</span>
                     </label>
                     <input
-                      type="email"
-                      placeholder="hello@example.com"
+                      type="text"
+                      placeholder="hello@example.com or john_doe"
                       className="input input-bordered w-full"
-                      value={loginData.email}
-                      onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                      value={loginData.emailOrUsername}
+                      onChange={(e) => setLoginData({ ...loginData, emailOrUsername: e.target.value })}
                       required
                     />
                   </div>
@@ -80,14 +82,27 @@ const LoginPage = () => {
                     <label className="label">
                       <span className="label-text">Password</span>
                     </label>
-                    <input
-                      type="password"
-                      placeholder="••••••••"
-                      className="input input-bordered w-full"
-                      value={loginData.password}
-                      onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                      required
-                    />
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        className="input input-bordered w-full pr-10"
+                        value={loginData.password}
+                        onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="absolute inset-y-0 right-0 flex items-center pr-3"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="size-5 opacity-70" />
+                        ) : (
+                          <Eye className="size-5 opacity-70" />
+                        )}
+                      </button>
+                    </div>
                   </div>
 
                   <button type="submit" className="btn btn-primary w-full" disabled={isPending}>

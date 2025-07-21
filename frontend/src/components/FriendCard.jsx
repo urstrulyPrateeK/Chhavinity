@@ -1,7 +1,10 @@
 import { Link } from "react-router";
-import { LANGUAGE_TO_FLAG } from "../constants";
+import { TECH_STACK_TO_ICON } from "../constants";
 
 const FriendCard = ({ friend }) => {
+  const proficientTechs = Array.isArray(friend.proficientTechStack) ? friend.proficientTechStack : friend.proficientTechStack ? [friend.proficientTechStack] : [];
+  const learningTechs = Array.isArray(friend.learningTechStack) ? friend.learningTechStack : friend.learningTechStack ? [friend.learningTechStack] : [];
+  
   return (
     <div className="card bg-base-200 hover:shadow-md transition-shadow">
       <div className="card-body p-4">
@@ -13,15 +16,38 @@ const FriendCard = ({ friend }) => {
           <h3 className="font-semibold truncate">{friend.fullName}</h3>
         </div>
 
-        <div className="flex flex-wrap gap-1.5 mb-3">
-          <span className="badge badge-secondary text-xs">
-            {getLanguageFlag(friend.nativeLanguage)}
-            Native: {friend.nativeLanguage}
-          </span>
-          <span className="badge badge-outline text-xs">
-            {getLanguageFlag(friend.learningLanguage)}
-            Learning: {friend.learningLanguage}
-          </span>
+        <div className="space-y-2 mb-3">
+          {/* Proficient Tech Stacks */}
+          {proficientTechs.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              <span className="text-xs font-medium text-secondary">💻 Proficient:</span>
+              {proficientTechs.slice(0, 3).map((tech) => (
+                <span key={tech} className="badge badge-secondary badge-sm">
+                  {getTechIcon(tech)}
+                  {tech}
+                </span>
+              ))}
+              {proficientTechs.length > 3 && (
+                <span className="badge badge-secondary badge-sm">+{proficientTechs.length - 3}</span>
+              )}
+            </div>
+          )}
+          
+          {/* Learning Tech Stacks */}
+          {learningTechs.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              <span className="text-xs font-medium text-accent">📚 Learning:</span>
+              {learningTechs.slice(0, 3).map((tech) => (
+                <span key={tech} className="badge badge-outline badge-sm">
+                  {getTechIcon(tech)}
+                  {tech}
+                </span>
+              ))}
+              {learningTechs.length > 3 && (
+                <span className="badge badge-outline badge-sm">+{learningTechs.length - 3}</span>
+              )}
+            </div>
+          )}
         </div>
 
         <Link to={`/chat/${friend._id}`} className="btn btn-outline w-full">
@@ -33,20 +59,18 @@ const FriendCard = ({ friend }) => {
 };
 export default FriendCard;
 
-export function getLanguageFlag(language) {
-  if (!language) return null;
+export function getTechIcon(techStack) {
+  if (!techStack) return null;
 
-  const langLower = language.toLowerCase();
-  const countryCode = LANGUAGE_TO_FLAG[langLower];
+  const techLower = techStack.toLowerCase();
+  const icon = TECH_STACK_TO_ICON[techLower];
 
-  if (countryCode) {
+  if (icon) {
     return (
-      <img
-        src={`https://flagcdn.com/24x18/${countryCode}.png`}
-        alt={`${langLower} flag`}
-        className="h-3 mr-1 inline-block"
-      />
+      <span className="mr-1 inline-block">
+        {icon}
+      </span>
     );
   }
-  return null;
+  return <span className="mr-1 inline-block">💻</span>; // Default tech icon
 }

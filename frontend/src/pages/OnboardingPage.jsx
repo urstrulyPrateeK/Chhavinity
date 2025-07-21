@@ -3,8 +3,8 @@ import useAuthUser from "../hooks/useAuthUser";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { completeOnboarding } from "../lib/api";
-import { LoaderIcon, MapPinIcon, Sparkles, ShuffleIcon } from "lucide-react";
-import { LANGUAGES } from "../constants";
+import { CameraIcon, LoaderIcon, MapPinIcon, Sparkles, ShuffleIcon, X, Plus } from "lucide-react";
+import { TECH_STACKS } from "../constants";
 
 const OnboardingPage = () => {
   const { authUser } = useAuthUser();
@@ -13,11 +13,16 @@ const OnboardingPage = () => {
   const [formState, setFormState] = useState({
     fullName: authUser?.fullName || "",
     bio: authUser?.bio || "",
-    nativeLanguage: authUser?.nativeLanguage || "",
-    learningLanguage: authUser?.learningLanguage || "",
+    proficientTechStack: Array.isArray(authUser?.proficientTechStack) ? authUser.proficientTechStack : authUser?.proficientTechStack ? [authUser.proficientTechStack] : [],
+    learningTechStack: Array.isArray(authUser?.learningTechStack) ? authUser.learningTechStack : authUser?.learningTechStack ? [authUser.learningTechStack] : [],
     location: authUser?.location || "",
     profilePic: authUser?.profilePic || "",
   });
+
+  const [selectedProficient, setSelectedProficient] = useState("");
+  const [selectedLearning, setSelectedLearning] = useState("");
+  const [customProficient, setCustomProficient] = useState("");
+  const [customLearning, setCustomLearning] = useState("");
 
   const { mutate: onboardingMutation, isPending } = useMutation({
     mutationFn: completeOnboarding,
@@ -33,16 +38,52 @@ const OnboardingPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     onboardingMutation(formState);
   };
 
   const handleRandomAvatar = () => {
-    const idx = Math.floor(Math.random() * 100) + 1; // 1-100 included
+    const idx = Math.floor(Math.random() * 100) + 1;
     const randomAvatar = `https://avatar.iran.liara.run/public/${idx}.png`;
-
     setFormState({ ...formState, profilePic: randomAvatar });
     toast.success("Random profile picture generated!");
+  };
+
+  const addProficientTech = () => {
+    const tech = selectedProficient === "other" ? customProficient.trim() : selectedProficient;
+    if (tech && !formState.proficientTechStack.includes(tech.toLowerCase())) {
+      setFormState({
+        ...formState,
+        proficientTechStack: [...formState.proficientTechStack, tech.toLowerCase()]
+      });
+      setSelectedProficient("");
+      setCustomProficient("");
+    }
+  };
+
+  const addLearningTech = () => {
+    const tech = selectedLearning === "other" ? customLearning.trim() : selectedLearning;
+    if (tech && !formState.learningTechStack.includes(tech.toLowerCase())) {
+      setFormState({
+        ...formState,
+        learningTechStack: [...formState.learningTechStack, tech.toLowerCase()]
+      });
+      setSelectedLearning("");
+      setCustomLearning("");
+    }
+  };
+
+  const removeProficientTech = (techToRemove) => {
+    setFormState({
+      ...formState,
+      proficientTechStack: formState.proficientTechStack.filter(tech => tech !== techToRemove)
+    });
+  };
+
+  const removeLearningTech = (techToRemove) => {
+    setFormState({
+      ...formState,
+      learningTechStack: formState.learningTechStack.filter(tech => tech !== techToRemove)
+    });
   };
 
   return (
@@ -103,50 +144,136 @@ const OnboardingPage = () => {
                 value={formState.bio}
                 onChange={(e) => setFormState({ ...formState, bio: e.target.value })}
                 className="textarea textarea-bordered h-24"
-                placeholder="Tell others about yourself and your language learning goals"
+                placeholder="Tell others about yourself and your development journey"
               />
             </div>
 
-            {/* LANGUAGES */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* NATIVE LANGUAGE */}
+            {/* TECH STACKS */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* PROFICIENT TECH STACK */}
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Native Language</span>
+                  <span className="label-text font-semibold">Proficient Tech Stacks</span>
                 </label>
-                <select
-                  name="nativeLanguage"
-                  value={formState.nativeLanguage}
-                  onChange={(e) => setFormState({ ...formState, nativeLanguage: e.target.value })}
-                  className="select select-bordered w-full"
-                >
-                  <option value="">Select your native language</option>
-                  {LANGUAGES.map((lang) => (
-                    <option key={`native-${lang}`} value={lang.toLowerCase()}>
-                      {lang}
-                    </option>
-                  ))}
-                </select>
+                
+                {/* Selected Tech Stacks */}
+                <div className="flex flex-wrap gap-2 mb-3 min-h-[40px] p-2 border border-base-300 rounded-lg bg-base-100">
+                  {formState.proficientTechStack.length === 0 ? (
+                    <span className="text-sm text-base-content/60 italic">No tech stacks selected</span>
+                  ) : (
+                    formState.proficientTechStack.map((tech) => (
+                      <div key={tech} className="badge badge-secondary gap-2">
+                        {tech}
+                        <button
+                          type="button"
+                          onClick={() => removeProficientTech(tech)}
+                          className="btn btn-ghost btn-xs size-4 p-0 hover:bg-error hover:text-error-content"
+                        >
+                          <X className="size-3" />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* Add New Tech Stack */}
+                <div className="flex gap-2">
+                  <select
+                    value={selectedProficient}
+                    onChange={(e) => setSelectedProficient(e.target.value)}
+                    className="select select-bordered flex-1"
+                  >
+                    <option value="">Select a tech stack</option>
+                    {TECH_STACKS.filter(tech => !formState.proficientTechStack.includes(tech.toLowerCase()))
+                      .map((tech) => (
+                        <option key={tech} value={tech.toLowerCase()}>
+                          {tech}
+                        </option>
+                      ))}
+                    <option value="other">Other (custom)</option>
+                  </select>
+                  {selectedProficient === "other" && (
+                    <input
+                      type="text"
+                      placeholder="Enter custom tech"
+                      className="input input-bordered flex-1"
+                      value={customProficient}
+                      onChange={(e) => setCustomProficient(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && addProficientTech()}
+                    />
+                  )}
+                  <button
+                    type="button"
+                    onClick={addProficientTech}
+                    className="btn btn-primary"
+                    disabled={!selectedProficient || (selectedProficient === "other" && !customProficient.trim())}
+                  >
+                    <Plus className="size-4" />
+                  </button>
+                </div>
               </div>
 
-              {/* LEARNING LANGUAGE */}
+              {/* LEARNING TECH STACK */}
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Learning Language</span>
+                  <span className="label-text font-semibold">Learning Tech Stacks</span>
                 </label>
-                <select
-                  name="learningLanguage"
-                  value={formState.learningLanguage}
-                  onChange={(e) => setFormState({ ...formState, learningLanguage: e.target.value })}
-                  className="select select-bordered w-full"
-                >
-                  <option value="">Select language you're learning</option>
-                  {LANGUAGES.map((lang) => (
-                    <option key={`learning-${lang}`} value={lang.toLowerCase()}>
-                      {lang}
-                    </option>
-                  ))}
-                </select>
+                
+                {/* Selected Tech Stacks */}
+                <div className="flex flex-wrap gap-2 mb-3 min-h-[40px] p-2 border border-base-300 rounded-lg bg-base-100">
+                  {formState.learningTechStack.length === 0 ? (
+                    <span className="text-sm text-base-content/60 italic">No tech stacks selected</span>
+                  ) : (
+                    formState.learningTechStack.map((tech) => (
+                      <div key={tech} className="badge badge-outline gap-2">
+                        {tech}
+                        <button
+                          type="button"
+                          onClick={() => removeLearningTech(tech)}
+                          className="btn btn-ghost btn-xs size-4 p-0 hover:bg-error hover:text-error-content"
+                        >
+                          <X className="size-3" />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* Add New Tech Stack */}
+                <div className="flex gap-2">
+                  <select
+                    value={selectedLearning}
+                    onChange={(e) => setSelectedLearning(e.target.value)}
+                    className="select select-bordered flex-1"
+                  >
+                    <option value="">Select a tech stack</option>
+                    {TECH_STACKS.filter(tech => !formState.learningTechStack.includes(tech.toLowerCase()))
+                      .map((tech) => (
+                        <option key={tech} value={tech.toLowerCase()}>
+                          {tech}
+                        </option>
+                      ))}
+                    <option value="other">Other (custom)</option>
+                  </select>
+                  {selectedLearning === "other" && (
+                    <input
+                      type="text"
+                      placeholder="Enter custom tech"
+                      className="input input-bordered flex-1"
+                      value={customLearning}
+                      onChange={(e) => setCustomLearning(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && addLearningTech()}
+                    />
+                  )}
+                  <button
+                    type="button"
+                    onClick={addLearningTech}
+                    className="btn btn-primary"
+                    disabled={!selectedLearning || (selectedLearning === "other" && !customLearning.trim())}
+                  >
+                    <Plus className="size-4" />
+                  </button>
+                </div>
               </div>
             </div>
 

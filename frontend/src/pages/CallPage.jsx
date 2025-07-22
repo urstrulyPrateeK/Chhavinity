@@ -139,22 +139,53 @@ const CallPage = () => {
           token: tokenData.token,
         });
 
-        console.log("Creating call with type 'video' and ID:", callId);
-        const callInstance = videoClient.call("video", callId);
+        // Try different call types in order of preference
+        const callTypes = ["default", "video", "livestream", "audio_room"];
+        let callInstance = null;
+        let successfulCallType = null;
 
-        console.log("Attempting to join call...");
-        await callInstance.join({ create: true });
+        for (const callType of callTypes) {
+          try {
+            console.log(`Trying call type: ${callType} with ID: ${callId}`);
+            callInstance = videoClient.call(callType, callId);
+            
+            console.log(`Attempting to join call with type: ${callType}...`);
+            await callInstance.join({ create: true });
+            
+            successfulCallType = callType;
+            console.log(`Successfully joined call with type: ${callType}`);
+            break;
+            
+          } catch (error) {
+            console.error(`Failed with call type ${callType}:`, error);
+            callInstance = null;
+            
+            // If this is the last call type, throw the error
+            if (callType === callTypes[callTypes.length - 1]) {
+              throw new Error(`All call types failed. Last error: ${error.message}`);
+            }
+          }
+        }
 
-        console.log("Joined call successfully");
+        if (!callInstance) {
+          throw new Error("Could not create call with any supported call type");
+        }
 
         setClient(videoClient);
         setCall(callInstance);
         
-        toast.success("Connected to video call!");
+        toast.success(`Connected to video call! (Type: ${successfulCallType})`);
 
       } catch (error) {
         console.error("Error joining call:", error);
-        toast.error("Could not join the call. Please try again.");
+        
+        // Check if this is a Video API not enabled error
+        if (error.message.includes("NOT_FOUND") || error.message.includes("404")) {
+          toast.error("Video calling not available. Please check Stream Video API setup.");
+          console.error("💡 Hint: You may need to enable Stream Video API in your dashboard");
+        } else {
+          toast.error("Could not join the call. Please try again.");
+        }
       } finally {
         setIsConnecting(false);
       }

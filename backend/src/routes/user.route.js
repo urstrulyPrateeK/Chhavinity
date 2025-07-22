@@ -8,6 +8,7 @@ import {
   getRecommendedUsers,
   sendFriendRequest,
   sendFriendRequestByUsername,
+  removeFriend,
 } from "../controllers/user.controller.js";
 
 const router = express.Router();
@@ -17,6 +18,7 @@ router.use(protectRoute);
 
 router.get("/", getRecommendedUsers);
 router.get("/friends", getMyFriends);
+router.delete("/friends/:friendId", removeFriend);
 
 router.post("/friend-request/:id", sendFriendRequest);
 router.post("/friend-request/username/:username", sendFriendRequestByUsername);

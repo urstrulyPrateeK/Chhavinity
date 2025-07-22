@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import FriendRequest from "../models/FriendRequest.js";
+import { StreamChat } from "stream-chat";
 
 export async function getRecommendedUsers(req, res) {
   try {
@@ -24,7 +25,7 @@ export async function getMyFriends(req, res) {
   try {
     const user = await User.findById(req.user.id)
       .select("friends")
-      .populate("friends", "fullName profilePic proficientTechStack learningTechStack");
+      .populate("friends", "fullName profilePic proficientTechStack learningTechStack username bio location");
 
     res.status(200).json(user.friends);
   } catch (error) {
@@ -199,6 +200,69 @@ export async function sendFriendRequestByUsername(req, res) {
     });
   } catch (error) {
     console.error("Error in sendFriendRequestByUsername controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+export async function removeFriend(req, res) {
+  try {
+    const myId = req.user.id;
+    const { friendId } = req.params;
+
+    // Validate that the friend exists
+    const friend = await User.findById(friendId);
+    if (!friend) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if they are actually friends
+    const currentUser = await User.findById(myId);
+    if (!currentUser.friends.includes(friendId)) {
+      return res.status(400).json({ message: "You are not friends with this user" });
+    }
+
+    // Remove each user from the other's friends list
+    await User.findByIdAndUpdate(myId, {
+      $pull: { friends: friendId }
+    });
+
+    await User.findByIdAndUpdate(friendId, {
+      $pull: { friends: myId }
+    });
+
+    // Delete any existing friend requests between them
+    await FriendRequest.deleteMany({
+      $or: [
+        { sender: myId, recipient: friendId },
+        { sender: friendId, recipient: myId }
+      ]
+    });
+
+    // Delete Stream Chat conversation between the users
+    try {
+      const streamClient = StreamChat.getInstance(
+        process.env.STREAM_API_KEY, 
+        process.env.STREAM_API_SECRET
+      );
+
+      // Create a channel ID for the conversation (consistent way to identify the channel)
+      const channelId = [myId, friendId].sort().join('-');
+      const channel = streamClient.channel('messaging', channelId);
+      
+      // Delete the channel which removes all messages
+      await channel.delete();
+      console.log(`Deleted Stream conversation between ${myId} and ${friendId}`);
+    } catch (streamError) {
+      console.log("Error deleting Stream conversation:", streamError.message);
+      // Don't fail the request if Stream deletion fails
+    }
+
+    res.status(200).json({ 
+      success: true,
+      message: `Removed ${friend.fullName} from your friends list and deleted all conversations`
+    });
+  } catch (error) {
+    console.error("Error in removeFriend controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 }

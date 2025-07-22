@@ -6,7 +6,7 @@ import {
   sendFriendRequest,
 } from "../lib/api";
 import { Link } from "react-router";
-import { CheckCircleIcon, MapPinIcon, UserPlusIcon, UsersIcon, HomeIcon, Edit2Icon, SearchIcon, UserIcon } from "lucide-react";
+import { CheckCircleIcon, MapPinIcon, UserPlusIcon, UsersIcon, HomeIcon, Edit2Icon, SearchIcon, UserIcon, UserMinusIcon } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { capitialize } from "../lib/utils";
@@ -157,6 +157,10 @@ const FriendsPage = () => {
               <HomeIcon className="mr-2 size-4" />
               My Friends
             </Link>
+            <Link to="/remove-friends" className="btn btn-outline btn-error btn-sm">
+              <UserMinusIcon className="mr-2 size-4" />
+              Remove Friends
+            </Link>
             <Link to="/notifications" className="btn btn-outline btn-sm">
               <UsersIcon className="mr-2 size-4" />
               Friend Requests
@@ -172,32 +176,36 @@ const FriendsPage = () => {
               <h3 className="text-lg font-semibold">Find Friends by Username</h3>
             </div>
             
-            <form onSubmit={handleSearchSubmit} className="flex gap-2">
-              <div className="form-control flex-1">
-                <div className="input-group">
-                  <span className="bg-base-300">@</span>
+            <form onSubmit={handleSearchSubmit} className="space-y-4">
+              <div className="flex gap-3">
+                <div className="form-control flex-1">
                   <input
                     type="text"
-                    placeholder="Enter username"
-                    className="input input-bordered flex-1"
+                    placeholder="Enter username to search"
+                    className="input input-bordered w-full focus:input-primary"
                     value={searchUsername}
                     onChange={(e) => setSearchUsername(e.target.value)}
                     required
                   />
                 </div>
+                <button
+                  type="submit"
+                  className="btn btn-primary px-6"
+                  disabled={isSearching || !searchUsername.trim()}
+                >
+                  {isSearching ? (
+                    <>
+                      <span className="loading loading-spinner loading-sm"></span>
+                      Searching...
+                    </>
+                  ) : (
+                    <>
+                      <SearchIcon className="size-4 mr-2" />
+                      Search
+                    </>
+                  )}
+                </button>
               </div>
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={isSearching || !searchUsername.trim()}
-              >
-                {isSearching ? (
-                  <span className="loading loading-spinner loading-sm"></span>
-                ) : (
-                  <SearchIcon className="size-4" />
-                )}
-                Search
-              </button>
             </form>
 
             {/* Search Results */}
@@ -221,7 +229,7 @@ const FriendsPage = () => {
                     </div>
                     <div>
                       <h4 className="font-semibold text-lg">{searchResult.fullName}</h4>
-                      <p className="text-sm opacity-70">@{searchResult.username}</p>
+                      <p className="text-sm opacity-70">{searchResult.username}</p>
                       {searchResult.bio && (
                         <p className="text-sm mt-1">{searchResult.bio}</p>
                       )}

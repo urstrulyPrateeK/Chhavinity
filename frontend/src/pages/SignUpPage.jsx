@@ -125,213 +125,213 @@ const SignUpPage = () => {
 
   return (
     <div
-      className="h-screen flex items-center justify-center p-4 sm:p-6 md:p-8"
-      data-theme="forest"
+      className="min-h-screen flex items-center justify-center p-4"
+      data-theme="synthwave"
     >
-      <div className="border border-primary/25 flex flex-col lg:flex-row w-full max-w-5xl mx-auto bg-base-100 rounded-xl shadow-lg overflow-hidden">
+      <div className="flex flex-col lg:flex-row w-full max-w-5xl mx-auto bg-base-100/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-primary/20 overflow-hidden">
         {/* SIGNUP FORM - LEFT SIDE */}
-        <div className="w-full lg:w-1/2 p-4 sm:p-8 flex flex-col">
+        <div className="w-full lg:w-3/5 p-6 lg:p-8">
           {/* LOGO */}
-          <div className="mb-4 flex items-center justify-start gap-2">
-            <Sparkles className="size-9 text-primary" />
-            <span className="text-3xl font-bold font-mono bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary tracking-wider">
+          <div className="mb-6 flex items-center justify-center lg:justify-start gap-3">
+            <Sparkles className="size-8 text-primary animate-pulse" />
+            <span className="text-3xl font-bold font-mono bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-accent tracking-wider">
               Chhavinity
             </span>
           </div>
 
           {/* ERROR MESSAGE IF ANY */}
           {error && (
-            <div className="alert alert-error mb-4">
-              <span>{error?.response?.data?.message || error?.message || "An error occurred"}</span>
+            <div className="alert alert-error mb-4 py-2">
+              <span className="text-sm">{error?.response?.data?.message || error?.message || "An error occurred"}</span>
             </div>
           )}
 
           <div className="w-full">
-            <form onSubmit={handleSignup}>
-              <div className="space-y-4">
-                <div>
-                  <h2 className="text-xl font-semibold">Create an Account</h2>
-                  <p className="text-sm opacity-70">
-                    Join Chhavinity and connect with fellow developers!
-                  </p>
+            <form onSubmit={handleSignup} className="space-y-4">
+              <div className="text-center lg:text-left mb-6">
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  Create Account
+                </h2>
+                <p className="text-sm opacity-70 mt-1">
+                  Join the developer community and start connecting!
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* FULLNAME */}
+                <div className="form-control">
+                  <label className="label py-1">
+                    <span className="label-text text-sm font-medium">Full Name</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="John Doe"
+                    className="input input-bordered input-sm w-full focus:input-primary"
+                    value={signupData.fullName}
+                    onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })}
+                    required
+                  />
                 </div>
-
-                <div className="space-y-3">
-                  {/* FULLNAME */}
-                  <div className="form-control w-full">
-                    <label className="label">
-                      <span className="label-text">Full Name</span>
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="John Doe"
-                      className="input input-bordered w-full"
-                      value={signupData.fullName}
-                      onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })}
-                      required
-                    />
-                  </div>
-                  
-                  {/* USERNAME */}
-                  <div className="form-control w-full">
-                    <label className="label">
-                      <span className="label-text">Username</span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="dev_07"
-                        className={`input input-bordered w-full pr-10 ${
-                          usernameCheck.available === true ? 'input-success' : 
-                          usernameCheck.available === false ? 'input-error' : ''
-                        }`}
-                        value={signupData.username}
-                        onChange={handleUsernameChange}
-                        required
-                        maxLength={30}
-                        pattern="[a-zA-Z0-9._]+"
-                        title="Username can contain letters, numbers, periods, and underscores"
-                      />
-                      <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                        {usernameCheck.checking && (
-                          <span className="loading loading-spinner loading-sm"></span>
-                        )}
-                        {!usernameCheck.checking && usernameCheck.available === true && (
-                          <Check className="size-5 text-success" />
-                        )}
-                        {!usernameCheck.checking && usernameCheck.available === false && (
-                          <X className="size-5 text-error" />
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Username Status Message */}
-                    {usernameCheck.message && (
-                      <p className={`text-xs mt-1 ${
-                        usernameCheck.available ? 'text-success' : 'text-error'
-                      }`}>
-                        {usernameCheck.message}
-                      </p>
-                    )}
-                    
-                    {/* Username Suggestions */}
-                    {usernameSuggestions.length > 0 && (
-                      <div className="mt-2">
-                        <p className="text-xs text-base-content/70 mb-2">Suggestions:</p>
-                        <div className="flex flex-wrap gap-1">
-                          {usernameSuggestions.map((suggestion) => (
-                            <button
-                              key={suggestion}
-                              type="button"
-                              onClick={() => selectSuggestion(suggestion)}
-                              className="badge badge-outline hover:badge-primary cursor-pointer text-xs"
-                            >
-                              {suggestion}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    <p className="text-xs opacity-70 mt-1">
-                      Letters, numbers, periods, and underscores. Up to 30 characters.
-                    </p>
-                  </div>
-
-                  {/* EMAIL */}
-                  <div className="form-control w-full">
-                    <label className="label">
-                      <span className="label-text">Email</span>
-                    </label>
-                    <input
-                      type="email"
-                      placeholder="john@gmail.com"
-                      className="input input-bordered w-full"
-                      value={signupData.email}
-                      onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
-                      required
-                    />
-                  </div>
-                  {/* PASSWORD */}
-                  <div className="form-control w-full">
-                    <label className="label">
-                      <span className="label-text">Password</span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        placeholder="********"
-                        className="input input-bordered w-full pr-10"
-                        value={signupData.password}
-                        onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
-                        required
-                      />
-                      <button
-                        type="button"
-                        className="absolute inset-y-0 right-0 flex items-center pr-3"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? (
-                          <EyeOff className="size-5 opacity-70" />
-                        ) : (
-                          <Eye className="size-5 opacity-70" />
-                        )}
-                      </button>
-                    </div>
-                    <p className="text-xs opacity-70 mt-1">
-                      Password must be at least 6 characters long
-                    </p>
-                  </div>
-
-                  <div className="form-control">
-                    <label className="label cursor-pointer justify-start gap-2">
-                      <input type="checkbox" className="checkbox checkbox-sm" required />
-                      <span className="text-xs leading-tight">
-                        I agree to the{" "}
-                        <span className="text-primary hover:underline">terms of service</span> and{" "}
-                        <span className="text-primary hover:underline">privacy policy</span>
-                      </span>
-                    </label>
-                  </div>
+                
+                {/* EMAIL */}
+                <div className="form-control">
+                  <label className="label py-1">
+                    <span className="label-text text-sm font-medium">Email</span>
+                  </label>
+                  <input
+                    type="email"
+                    placeholder="hello@example.com"
+                    className="input input-bordered input-sm w-full focus:input-primary"
+                    value={signupData.email}
+                    onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
+                    required
+                  />
                 </div>
+              </div>
 
-                <button className="btn btn-primary w-full" type="submit">
-                  {isPending ? (
-                    <>
+              {/* USERNAME - Full width */}
+              <div className="form-control">
+                <label className="label py-1">
+                  <span className="label-text text-sm font-medium">Username</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="dev_07"
+                    className={`input input-bordered input-sm w-full pr-10 focus:input-primary ${
+                      usernameCheck.available === true ? 'input-success' : 
+                      usernameCheck.available === false ? 'input-error' : ''
+                    }`}
+                    value={signupData.username}
+                    onChange={handleUsernameChange}
+                    required
+                    maxLength={30}
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    {usernameCheck.checking && (
                       <span className="loading loading-spinner loading-xs"></span>
-                      Loading...
-                    </>
-                  ) : (
-                    "Create Account"
-                  )}
-                </button>
-
-                <div className="text-center mt-4">
-                  <p className="text-sm">
-                    Already have an account?{" "}
-                    <Link to="/login" className="text-primary hover:underline">
-                      Sign in
-                    </Link>
-                  </p>
+                    )}
+                    {!usernameCheck.checking && usernameCheck.available === true && (
+                      <Check className="size-4 text-success" />
+                    )}
+                    {!usernameCheck.checking && usernameCheck.available === false && (
+                      <X className="size-4 text-error" />
+                    )}
+                  </div>
                 </div>
+                
+                {/* Username feedback */}
+                {usernameCheck.message && (
+                  <div className={`text-xs mt-1 ${usernameCheck.available ? 'text-success' : 'text-error'}`}>
+                    {usernameCheck.message}
+                  </div>
+                )}
+
+                {/* Username suggestions - Compact */}
+                {usernameSuggestions.length > 0 && (
+                  <div className="mt-2">
+                    <p className="text-xs opacity-70 mb-1">Try these:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {usernameSuggestions.slice(0, 4).map((suggestion, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          className="badge badge-outline badge-xs cursor-pointer hover:badge-primary transition-colors"
+                          onClick={() => selectSuggestion(suggestion)}
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* PASSWORD */}
+              <div className="form-control">
+                <label className="label py-1">
+                  <span className="label-text text-sm font-medium">Password</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="********"
+                    className="input input-bordered input-sm w-full pr-10 focus:input-primary"
+                    value={signupData.password}
+                    onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 hover:text-primary transition-colors"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="size-4 opacity-70" />
+                    ) : (
+                      <Eye className="size-4 opacity-70" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="form-control">
+                <label className="label cursor-pointer justify-start gap-2 py-2">
+                  <input type="checkbox" className="checkbox checkbox-xs checkbox-primary" required />
+                  <span className="text-xs">
+                    I agree to the{" "}
+                    <span className="text-primary hover:underline cursor-pointer">Terms</span> and{" "}
+                    <span className="text-primary hover:underline cursor-pointer">Privacy Policy</span>
+                  </span>
+                </label>
+              </div>
+
+              <button 
+                className="btn btn-primary btn-sm w-full shadow-lg hover:shadow-primary/25 transition-all duration-300" 
+                type="submit" 
+                disabled={isPending}
+              >
+                {isPending ? (
+                  <>
+                    <span className="loading loading-spinner loading-xs"></span>
+                    Creating Account...
+                  </>
+                ) : (
+                  "Create Account"
+                )}
+              </button>
+
+              <div className="text-center mt-4">
+                <p className="text-sm">
+                  Already have an account?{" "}
+                  <Link to="/login" className="text-primary hover:underline font-medium">
+                    Sign in
+                  </Link>
+                </p>
               </div>
             </form>
           </div>
         </div>
 
-        {/* SIGNUP FORM - RIGHT SIDE */}
-        <div className="hidden lg:flex w-full lg:w-1/2 bg-primary/10 items-center justify-center">
-          <div className="max-w-md p-8">
-            {/* Illustration */}
-            <div className="relative aspect-square max-w-sm mx-auto">
-              <img src="/i.png" alt="Language connection illustration" className="w-full h-full" />
+        {/* ILLUSTRATION - RIGHT SIDE */}
+        <div className="hidden lg:flex w-2/5 bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10 items-center justify-center relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
+          <div className="relative z-10 text-center p-8">
+            <div className="mb-6">
+              <div className="w-32 h-32 mx-auto bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-primary/30">
+                <Sparkles className="size-16 text-primary animate-pulse" />
+              </div>
             </div>
-
-            <div className="text-center space-y-3 mt-6">
-              <h2 className="text-xl font-semibold">Connect with language partners worldwide</h2>
-              <p className="opacity-70">
-                Practice conversations, make friends, and improve your language skills together
-              </p>
+            <h3 className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-3">
+              Welcome to the Future
+            </h3>
+            <p className="text-sm opacity-80 leading-relaxed">
+              Connect with developers worldwide in a cyberpunk-inspired platform designed for the next generation of coders.
+            </p>
+            <div className="mt-6 flex justify-center gap-2">
+              <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-secondary rounded-full animate-pulse delay-75"></div>
+              <div className="w-2 h-2 bg-accent rounded-full animate-pulse delay-150"></div>
             </div>
           </div>
         </div>

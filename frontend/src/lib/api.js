@@ -84,3 +84,8 @@ export async function sendFriendRequestByUsername(username) {
   const response = await axiosInstance.post(`/users/friend-request/username/${username}`);
   return response.data;
 }
+
+export async function removeFriend(friendId) {
+  const response = await axiosInstance.delete(`/users/friends/${friendId}`);
+  return response.data;
+}

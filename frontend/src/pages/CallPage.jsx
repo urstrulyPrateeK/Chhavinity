@@ -45,13 +45,11 @@ const CallPage = () => {
     const isPopup = urlParams.get('popup') === 'true' || !!window.opener;
     setIsPopupWindow(isPopup);
     
-    // Check if we should use SimplePeer directly or force it for now
-    if (urlParams.get('simple') === 'true' || true) { // Force SimplePeer for now
-      console.log("Using SimplePeer video calling");
-      setUseSimplePeer(true);
-      setIsConnecting(false);
-      return;
-    }
+    // Always use BasicVideoCall for simplicity - no authentication needed
+    console.log("Using BasicVideoCall - no authentication required");
+    setUseSimplePeer(true);
+    setIsConnecting(false);
+    return;
     
     if (isPopup) {
       console.log("Call page opened as popup window");

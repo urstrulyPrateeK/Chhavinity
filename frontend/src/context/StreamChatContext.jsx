@@ -7,10 +7,11 @@ import channelWatchService from "../services/ChannelWatchService";
 
 const StreamChatContext = createContext();
 
-// Stream API Key with fallback for production
-const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY || "8br4watd788t";
+// Stream API Key with correct fallback for production
+const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY || "cmudsbk7ru8y";
 
-console.log("🔑 Stream API Key:", STREAM_API_KEY ? "✅ Found" : "❌ Missing");
+console.log("🔑 Stream API Key:", STREAM_API_KEY ? `✅ Found: ${STREAM_API_KEY}` : "❌ Missing");
+console.log("🌍 Environment:", import.meta.env.MODE || "production");
 
 export const StreamChatProvider = ({ children }) => {
   const [chatClient, setChatClient] = useState(null);
@@ -104,15 +105,27 @@ export const StreamChatProvider = ({ children }) => {
 
       } catch (error) {
         console.error("❌ Error initializing global Stream Chat:", error);
+        
+        // Specific error handling for API key issues
+        if (error.message && error.message.includes("api_key not valid")) {
+          console.error("🔑 STREAM API KEY ERROR: The API key is invalid!");
+          console.error("📍 Current API Key:", STREAM_API_KEY);
+          console.error("📍 Environment Mode:", import.meta.env.MODE);
+          console.error("📍 Expected API Key: cmudsbk7ru8y");
+        }
+        
         setIsConnected(false);
         
-        // Retry connection up to 3 times
-        if (connectionAttempts < 3) {
+        // Retry connection up to 3 times (but not for API key errors)
+        const isApiKeyError = error.message && error.message.includes("api_key not valid");
+        if (connectionAttempts < 3 && !isApiKeyError) {
           console.log(`Retrying Stream Chat connection (attempt ${connectionAttempts + 1}/3)`);
           setConnectionAttempts(prev => prev + 1);
           setTimeout(() => {
             initStreamChat();
           }, 2000 * (connectionAttempts + 1)); // Exponential backoff
+        } else if (isApiKeyError) {
+          console.error("🚫 Not retrying due to API key error. Please check your Stream API configuration.");
         }
       }
     };

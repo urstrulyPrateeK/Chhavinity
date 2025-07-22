@@ -126,6 +126,9 @@ const CallPage = () => {
 
       try {
         console.log("Initializing Stream video client...");
+        console.log("Token:", tokenData.token ? "✅ Available" : "❌ Missing");
+        console.log("Auth User:", authUser ? "✅ Available" : "❌ Missing");
+        console.log("Call ID:", callId);
 
         const user = {
           id: authUser._id,
@@ -133,13 +136,23 @@ const CallPage = () => {
           image: authUser.profilePic,
         };
 
+        console.log("Creating VideoClient with:", { apiKey: STREAM_API_KEY, user });
+
         const videoClient = new StreamVideoClient({
           apiKey: STREAM_API_KEY,
           user,
           token: tokenData.token,
         });
 
+        console.log("VideoClient created successfully");
+
+        // Try to connect the client first
+        await videoClient.connectUser();
+        console.log("VideoClient connected");
+
         const callInstance = videoClient.call("default", callId);
+        console.log("Call instance created:", callInstance);
+        
         await callInstance.join({ create: true });
         
         console.log("Joined call successfully");
@@ -149,8 +162,18 @@ const CallPage = () => {
         toast.success("Connected to video call!");
 
       } catch (error) {
-        console.error("Error joining call:", error);
-        toast.error("Could not join the call. Please try again.");
+        console.error("Detailed error joining call:", error);
+        console.error("Error name:", error.name);
+        console.error("Error message:", error.message);
+        console.error("Error stack:", error.stack);
+        
+        if (error.message.includes("404") || error.message.includes("NOT_FOUND")) {
+          toast.error("Stream Video API not enabled. Please enable Video API in your Stream dashboard.");
+        } else if (error.message.includes("401") || error.message.includes("UNAUTHORIZED")) {
+          toast.error("Invalid Stream credentials. Please check your API key and token.");
+        } else {
+          toast.error(`Could not join the call: ${error.message}`);
+        }
       } finally {
         setIsConnecting(false);
       }

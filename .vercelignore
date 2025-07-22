@@ -1,0 +1,10 @@
+backend/
+node_modules/
+.git/
+.vscode/
+*.log
+.env
+.env.local
+.env.development
+.env.test
+.env.production

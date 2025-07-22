@@ -3,7 +3,6 @@ builder = "nixpacks"
 
 [deploy]
 startCommand = "npm start"
-healthcheckPath = "/api/health"
 
 [environments.production]
 rootDirectory = "backend"

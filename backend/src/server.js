@@ -16,7 +16,8 @@ const PORT = process.env.PORT || 5001;
 app.use(cors({
   origin: [
     "http://localhost:5173",
-    "https://chhavinity.vercel.app", // Add your Vercel domain here
+    "https://chhavinity.vercel.app", // Your Vercel domain
+    "https://your-vercel-domain.vercel.app", // Replace with actual Vercel URL
     process.env.FRONTEND_URL
   ].filter(Boolean),
   credentials: true
@@ -29,6 +30,11 @@ app.get("/api/health", (req, res) => {
     message: "Chhavinity backend is healthy!",
     timestamp: new Date().toISOString()
   });
+});
+
+// Additional health check at root for Railway
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "OK" });
 });
 
 // Root route

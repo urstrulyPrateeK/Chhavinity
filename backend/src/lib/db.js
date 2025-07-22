@@ -6,6 +6,8 @@ export const connectDB = async () => {
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
     console.log("Error in connecting to MongoDB", error);
-    process.exit(1); // 1 means failure
+    // Don't exit process immediately, let Railway health check handle it
+    console.log("Retrying database connection in 5 seconds...");
+    setTimeout(connectDB, 5000);
   }
 };

@@ -21,7 +21,9 @@ import "@stream-io/video-react-sdk/dist/css/styles.css";
 import toast from "react-hot-toast";
 import PageLoader from "../components/PageLoader";
 
-const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
+const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY || "9nddtpt77s6p";
+
+console.log("🎥 Video CallPage - Stream API Key:", STREAM_API_KEY);
 
 const CallPage = () => {
   const { id: callId } = useParams();
@@ -137,8 +139,10 @@ const CallPage = () => {
           token: tokenData.token,
         });
 
-        const callInstance = videoClient.call("default", callId);
+        console.log("Creating call with type 'video' and ID:", callId);
+        const callInstance = videoClient.call("video", callId);
 
+        console.log("Attempting to join call...");
         await callInstance.join({ create: true });
 
         console.log("Joined call successfully");

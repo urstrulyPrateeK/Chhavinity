@@ -19,7 +19,9 @@ import "@stream-io/video-react-sdk/dist/css/styles.css";
 import toast from "react-hot-toast";
 import PageLoader from "../components/PageLoader";
 
-const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
+const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY || "9nddtpt77s6p";
+
+console.log("🎥 Video CallPage - Stream API Key:", STREAM_API_KEY);
 
 const CallPage = () => {
   const { id: callId } = useParams();
@@ -37,10 +39,14 @@ const CallPage = () => {
 
   useEffect(() => {
     const initCall = async () => {
-      if (!tokenData.token || !authUser || !callId) return;
+      if (!tokenData?.token || !authUser || !callId) return;
 
       try {
         console.log("Initializing Stream video client...");
+        console.log("API Key:", STREAM_API_KEY);
+        console.log("Token available:", !!tokenData.token);
+        console.log("User ID:", authUser._id);
+        console.log("Call ID:", callId);
 
         const user = {
           id: authUser._id,
@@ -62,8 +68,15 @@ const CallPage = () => {
 
         setClient(videoClient);
         setCall(callInstance);
+        
+        toast.success("Connected to video call!");
       } catch (error) {
         console.error("Error joining call:", error);
+        console.error("Error details:", {
+          name: error.name,
+          message: error.message,
+          code: error.code
+        });
         toast.error("Could not join the call. Please try again.");
       } finally {
         setIsConnecting(false);

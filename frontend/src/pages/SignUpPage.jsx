@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Sparkles, Eye, EyeOff, Check, X } from "lucide-react";
+import { Eye, EyeOff, Check, X } from "lucide-react";
 import { Link } from "react-router";
 
 import useSignUp from "../hooks/useSignUp";
+import ChhavimityLogo from "../components/ChhavimityLogo";
 
 const SignUpPage = () => {
   const [signupData, setSignupData] = useState({
@@ -132,11 +133,8 @@ const SignUpPage = () => {
         {/* SIGNUP FORM - LEFT SIDE */}
         <div className="w-full lg:w-3/5 p-6 lg:p-8">
           {/* LOGO */}
-          <div className="mb-6 flex items-center justify-center lg:justify-start gap-3">
-            <Sparkles className="size-8 text-primary animate-pulse" />
-            <span className="text-3xl font-bold font-mono bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-accent tracking-wider">
-              Chhavinity
-            </span>
+          <div className="mb-6 flex items-center justify-center lg:justify-start">
+            <ChhavimityLogo size="lg" showText={true} animate={true} />
           </div>
 
           {/* ERROR MESSAGE IF ANY */}
@@ -319,7 +317,7 @@ const SignUpPage = () => {
           <div className="relative z-10 text-center p-8">
             <div className="mb-6">
               <div className="w-32 h-32 mx-auto bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-primary/30">
-                <Sparkles className="size-16 text-primary animate-pulse" />
+                <ChhavimityLogo size="2xl" animate={true} />
               </div>
             </div>
             <h3 className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-3">

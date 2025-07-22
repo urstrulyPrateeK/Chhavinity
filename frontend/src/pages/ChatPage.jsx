@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import useAuthUser from "../hooks/useAuthUser";
 import { useQuery } from "@tanstack/react-query";
-import { getStreamToken, ensureStreamUser } from "../lib/api";
+import { ensureStreamUser } from "../lib/api";
+import { useStreamChat } from "../context/StreamChatContext";
 
 import {
   Channel,
@@ -13,73 +14,44 @@ import {
   Thread,
   Window,
 } from "stream-chat-react";
-import { StreamChat } from "stream-chat";
 import toast from "react-hot-toast";
 
 import ChatLoader from "../components/ChatLoader";
 import CallButton from "../components/CallButton";
 
-const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
+// Import the enhanced chat theme
+import "../styles/chat-theme.css";
 
 const ChatPage = () => {
   const { id: targetUserId } = useParams();
-
-  const [chatClient, setChatClient] = useState(null);
+  const { chatClient, isConnected } = useStreamChat();
   const [channel, setChannel] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const { authUser } = useAuthUser();
 
-  const { data: tokenData } = useQuery({
-    queryKey: ["streamToken"],
-    queryFn: getStreamToken,
-    enabled: !!authUser, // this will run only when authUser is available
-  });
-
   useEffect(() => {
     const initChat = async () => {
-      if (!tokenData?.token || !authUser || !targetUserId || chatClient) return; // Prevent multiple connections
+      if (!chatClient || !isConnected || !authUser || !targetUserId) return;
 
       try {
-        console.log("Initializing stream chat client...");
-
-        const client = StreamChat.getInstance(STREAM_API_KEY);
-
-        // Check if user is already connected
-        if (client.userID) {
-          console.log("User already connected, skipping connectUser");
-        } else {
-          await client.connectUser(
-            {
-              id: authUser._id,
-              name: authUser.fullName,
-              image: authUser.profilePic,
-            },
-            tokenData.token
-          );
-        }
+        console.log("Initializing chat channel...");
 
         // Ensure the target user exists in Stream before creating channel
         console.log("Ensuring target user exists in Stream...");
         await ensureStreamUser(targetUserId);
 
-        //
+        // Create channel ID by sorting user IDs
         const channelId = [authUser._id, targetUserId].sort().join("-");
 
-        // you and me
-        // if i start the chat => channelId: [myId, yourId]
-        // if you start the chat => channelId: [yourId, myId]  => [myId,yourId]
-
-        const currChannel = client.channel("messaging", channelId, {
+        const currChannel = chatClient.channel("messaging", channelId, {
           members: [authUser._id, targetUserId],
         });
 
         await currChannel.watch();
-
-        setChatClient(client);
         setChannel(currChannel);
       } catch (error) {
-        console.error("Error initializing chat:", error);
+        console.error("Error initializing chat channel:", error);
         toast.error("Could not connect to chat. Please try again.");
       } finally {
         setLoading(false);
@@ -87,14 +59,7 @@ const ChatPage = () => {
     };
 
     initChat();
-
-    // Cleanup function
-    return () => {
-      if (chatClient) {
-        chatClient.disconnectUser();
-      }
-    };
-  }, [tokenData?.token, authUser?._id, targetUserId]); // More specific dependencies
+  }, [chatClient, isConnected, authUser?._id, targetUserId]);
 
   const handleVideoCall = () => {
     if (channel) {
@@ -111,20 +76,28 @@ const ChatPage = () => {
   if (loading || !chatClient || !channel) return <ChatLoader />;
 
   return (
-    <div className="h-[93vh]">
-      <Chat client={chatClient}>
-        <Channel channel={channel}>
-          <div className="w-full relative">
-            <CallButton handleVideoCall={handleVideoCall} />
+    <div className="h-screen w-full overflow-hidden">
+      <div className="chat-container-enhanced h-full w-full" style={{ position: 'relative' }}>
+        <Chat client={chatClient}>
+          <Channel channel={channel}>
             <Window>
               <ChannelHeader />
               <MessageList />
               <MessageInput focus />
             </Window>
-          </div>
-          <Thread />
-        </Channel>
-      </Chat>
+            <Thread />
+          </Channel>
+        </Chat>
+        {/* Video call button positioned outside Stream Chat */}
+        <div style={{
+          position: 'absolute',
+          top: '1rem',
+          right: '1rem',
+          zIndex: 1000
+        }}>
+          <CallButton handleVideoCall={handleVideoCall} />
+        </div>
+      </div>
     </div>
   );
 };

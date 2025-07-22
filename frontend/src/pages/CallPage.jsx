@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import useAuthUser from "../hooks/useAuthUser";
+import { useNotifications } from "../context/NotificationContext";
+import { useStreamChat } from "../context/StreamChatContext";
 import { useQuery } from "@tanstack/react-query";
 import { getStreamToken } from "../lib/api";
 
@@ -26,8 +28,89 @@ const CallPage = () => {
   const [client, setClient] = useState(null);
   const [call, setCall] = useState(null);
   const [isConnecting, setIsConnecting] = useState(true);
+  const [isPopupWindow, setIsPopupWindow] = useState(false);
 
   const { authUser, isLoading } = useAuthUser();
+  const { endActiveCall, activeCalls } = useNotifications();
+  const { chatClient } = useStreamChat();
+
+  // Check if this is a popup window
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const isPopup = urlParams.get('popup') === 'true' || !!window.opener;
+    setIsPopupWindow(isPopup);
+    
+    if (isPopup) {
+      console.log("Call page opened as popup window");
+    }
+  }, []);
+
+  // Function to send call end notification
+  const sendCallEndNotification = async (callId) => {
+    if (!chatClient || !authUser || !callId) return;
+    
+    try {
+      console.log("Sending call end notification for callId:", callId);
+      
+      // For 1-on-1 video calls, we need to find the other participant
+      // We'll check the active calls state to find who this call is with
+      let otherUserId = null;
+      Object.entries(activeCalls).forEach(([userId, callInfo]) => {
+        if (callInfo.callId === callId && userId !== authUser._id) {
+          otherUserId = userId;
+        }
+      });
+      
+      if (otherUserId) {
+        // Create channel ID (consistent sorting)
+        const channelId = [authUser._id, otherUserId].sort().join('-');
+        
+        const channel = chatClient.channel('messaging', channelId);
+        
+        // Send call end message
+        await channel.sendMessage({
+          text: `📞 ${authUser.fullName} ended the video call`,
+          user_id: authUser._id,
+          custom: {
+            type: 'call_ended',
+            callId: callId,
+            endedBy: authUser._id,
+            endedByName: authUser.fullName,
+            endedAt: new Date().toISOString()
+          }
+        });
+        
+        console.log(`Call end notification sent to user: ${otherUserId}`);
+      } else {
+        console.warn(`Could not find other participant for call ${callId}`);
+        
+        // Fallback: Try to extract from call state or send to recent channels
+        const filters = { type: 'messaging', members: { $in: [authUser._id] } };
+        const sort = [{ last_message_at: -1 }];
+        const channelsResponse = await chatClient.queryChannels(filters, sort, { limit: 5 });
+        
+        // Send to the most recent channel as fallback
+        if (channelsResponse.length > 0) {
+          const channel = channelsResponse[0];
+          await channel.sendMessage({
+            text: `📞 ${authUser.fullName} ended the video call`,
+            user_id: authUser._id,
+            custom: {
+              type: 'call_ended',
+              callId: callId,
+              endedBy: authUser._id,
+              endedByName: authUser.fullName,
+              endedAt: new Date().toISOString()
+            }
+          });
+          console.log(`Call end notification sent to fallback channel: ${channel.id}`);
+        }
+      }
+      
+    } catch (error) {
+      console.error("Error sending call end notification:", error);
+    }
+  };
 
   const { data: tokenData } = useQuery({
     queryKey: ["streamToken"],
@@ -37,7 +120,7 @@ const CallPage = () => {
 
   useEffect(() => {
     const initCall = async () => {
-      if (!tokenData.token || !authUser || !callId) return;
+      if (!tokenData?.token || !authUser || !callId) return;
 
       try {
         console.log("Initializing Stream video client...");
@@ -62,6 +145,9 @@ const CallPage = () => {
 
         setClient(videoClient);
         setCall(callInstance);
+        
+        toast.success("Connected to video call!");
+
       } catch (error) {
         console.error("Error joining call:", error);
         toast.error("Could not join the call. Please try again.");
@@ -71,6 +157,41 @@ const CallPage = () => {
     };
 
     initCall();
+
+    // Cleanup function
+    return () => {
+      if (call) {
+        console.log("Cleaning up call...");
+        
+        // Send call end notification before leaving
+        sendCallEndNotification(callId);
+        
+        call.leave().catch(error => {
+          console.error("Error leaving call:", error);
+        });
+      }
+      if (client) {
+        console.log("Cleaning up video client...");
+        client.disconnectUser().catch(error => {
+          console.error("Error disconnecting video client:", error);
+        });
+      }
+      
+      // End active call tracking for all users with this call ID
+      if (callId && endActiveCall) {
+        // Try to find which user this call was with and end tracking
+        const activeCallUsers = Object.keys(localStorage).filter(key => 
+          key.startsWith('activeCall_') && 
+          localStorage.getItem(key) && 
+          JSON.parse(localStorage.getItem(key)).callId === callId
+        );
+        
+        activeCallUsers.forEach(key => {
+          const userId = key.replace('activeCall_', '');
+          endActiveCall(userId);
+        });
+      }
+    };
   }, [tokenData, authUser, callId]);
 
   if (isLoading || isConnecting) return <PageLoader />;
@@ -81,7 +202,11 @@ const CallPage = () => {
         {client && call ? (
           <StreamVideo client={client}>
             <StreamCall call={call}>
-              <CallContent />
+              <CallContent 
+                isPopupWindow={isPopupWindow} 
+                callId={callId}
+                sendCallEndNotification={sendCallEndNotification}
+              />
             </StreamCall>
           </StreamVideo>
         ) : (
@@ -94,18 +219,90 @@ const CallPage = () => {
   );
 };
 
-const CallContent = () => {
+const CallContent = ({ isPopupWindow, callId, sendCallEndNotification }) => {
   const { useCallCallingState } = useCallStateHooks();
-  const callingState = useCallCallingState();
+  const callingState = useCallStateHooks().useCallCallingState();
 
   const navigate = useNavigate();
 
-  if (callingState === CallingState.LEFT) return navigate("/");
+  // Handle call end
+  useEffect(() => {
+    if (callingState === CallingState.LEFT) {
+      toast.success("Call ended");
+      
+      // Send call end notification
+      if (sendCallEndNotification && callId) {
+        sendCallEndNotification(callId);
+      }
+      
+      // Check if this is a popup window
+      if (isPopupWindow || window.opener) {
+        // This is a popup window, close it
+        setTimeout(() => {
+          window.close();
+        }, 1000);
+      } else {
+        // This is a regular window, navigate back to home
+        setTimeout(() => {
+          navigate("/");
+        }, 1000);
+      }
+    }
+  }, [callingState, navigate, isPopupWindow, callId, sendCallEndNotification]);
+
+  // Handle browser tab/window close
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      // Try to leave the call when user closes the tab
+      try {
+        // This will be handled by the call cleanup
+      } catch (error) {
+        console.error("Error leaving call on page unload:", error);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
 
   return (
     <StreamTheme>
       <SpeakerLayout />
-      <CallControls />
+      <div className="relative">
+        <CallControls 
+          onLeave={() => {
+            // Custom leave handler
+            toast.success("Leaving call...");
+            if (sendCallEndNotification && callId) {
+              sendCallEndNotification(callId);
+            }
+          }}
+        />
+        
+        {/* Custom close button for popup windows */}
+        {(isPopupWindow || window.opener) && (
+          <div className="absolute top-4 right-4 z-50">
+            <button 
+              onClick={() => {
+                toast.success("Closing call window...");
+                if (sendCallEndNotification && callId) {
+                  sendCallEndNotification(callId);
+                }
+                setTimeout(() => {
+                  window.close();
+                }, 500);
+              }}
+              className="btn btn-error btn-sm gap-2"
+              title="Close Call Window"
+            >
+              ✕ Close Window
+            </button>
+          </div>
+        )}
+      </div>
     </StreamTheme>
   );
 };

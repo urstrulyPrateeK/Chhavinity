@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router";
 import useAuthUser from "../hooks/useAuthUser";
-import { BellIcon, LogOutIcon, Sparkles } from "lucide-react";
+import { BellIcon, LogOutIcon } from "lucide-react";
+import ChhavimityLogo from "./ChhavimityLogo";
 import ThemeSelector from "./ThemeSelector";
 import useLogout from "../hooks/useLogout";
 
@@ -25,10 +26,7 @@ const Navbar = () => {
           {isChatPage && (
             <div className="pl-2 md:pl-5">
               <Link to="/" className="flex items-center gap-1.5 md:gap-2.5">
-                <Sparkles className="size-6 md:size-9 text-primary" />
-                <span className="text-lg md:text-3xl font-bold font-mono bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary tracking-wider">
-                  Chhavinity
-                </span>
+                <ChhavimityLogo size="md" showText={true} />
               </Link>
             </div>
           )}

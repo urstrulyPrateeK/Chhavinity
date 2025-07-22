@@ -47,41 +47,101 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Push notification event
+// Enhanced Push notification event
 self.addEventListener('push', (event) => {
+  console.log('Push event received:', event);
+  
+  let data = {};
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch (e) {
+      data = { body: event.data.text() };
+    }
+  }
+
   const options = {
-    body: event.data ? event.data.text() : 'New message from Chhavinity',
-    icon: '/icons/icon-192x192.png',
+    body: data.body || 'New message from Chhavinity',
+    icon: data.icon || '/icons/icon-96x96.png',
     badge: '/icons/icon-72x72.png',
-    vibrate: [100, 50, 100],
+    vibrate: [200, 100, 200, 100, 200],
+    tag: data.tag || 'message',
+    requireInteraction: false,
+    silent: false,
     data: {
+      url: data.url || '/',
+      userId: data.userId,
+      messageId: data.messageId,
       dateOfArrival: Date.now(),
-      primaryKey: '2'
+      primaryKey: data.primaryKey || '1'
     },
     actions: [
       {
-        action: 'explore',
-        title: 'Open App',
-        icon: '/icons/icon-192x192.png'
+        action: 'reply',
+        title: 'Reply',
+        icon: '/icons/icon-96x96.png'
+      },
+      {
+        action: 'mark-read',
+        title: 'Mark Read'
       },
       {
         action: 'close',
-        title: 'Close',
-        icon: '/icons/icon-192x192.png'
+        title: 'Dismiss'
       }
     ]
   };
 
   event.waitUntil(
-    self.registration.showNotification('Chhavinity', options)
+    self.registration.showNotification(data.title || 'Chhavinity', options)
   );
 });
 
-// Notification click event
+// Enhanced Notification click event
 self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
+  console.log('Notification clicked with action:', event.action);
+  
+  const notification = event.notification;
+  const action = event.action;
+  
+  notification.close();
 
-  if (event.action === 'explore') {
-    event.waitUntil(clients.openWindow('/'));
+  if (action === 'close') {
+    return;
   }
+
+  if (action === 'mark-read') {
+    // Handle mark as read
+    event.waitUntil(
+      self.registration.showNotification('Message marked as read', {
+        body: 'Message has been marked as read',
+        icon: '/icons/icon-96x96.png',
+        tag: 'mark-read',
+        requireInteraction: false
+      })
+    );
+    return;
+  }
+
+  // Default action (including reply) - open the app
+  const urlToOpen = notification.data?.url || '/';
+  
+  event.waitUntil(
+    clients.matchAll({
+      type: 'window',
+      includeUncontrolled: true
+    }).then((clientList) => {
+      // Check if app is already open
+      for (const client of clientList) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      
+      // Open new window if not open
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
+  );
 });

@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from "react-router";
+import { useEffect, useRef } from "react";
 
 import HomePage from "./pages/HomePage.jsx";
 import FriendsPage from "./pages/FriendsPage.jsx";
@@ -10,6 +11,10 @@ import CallPage from "./pages/CallPage.jsx";
 import ChatPage from "./pages/ChatPage.jsx";
 import OnboardingPage from "./pages/OnboardingPage.jsx";
 import PWAInstallPrompt from "./components/PWAInstallPrompt.jsx";
+import StreamChatNotifications from "./components/StreamChatNotifications.jsx";
+import { NotificationProvider } from "./context/NotificationContext.jsx";
+import { StreamChatProvider } from "./context/StreamChatContext.jsx";
+import OnlineStatusService from "./services/OnlineStatusService.js";
 
 import { Toaster } from "react-hot-toast";
 
@@ -21,15 +26,44 @@ import { useThemeStore } from "./store/useThemeStore.js";
 const App = () => {
   const { isLoading, authUser } = useAuthUser();
   const { theme } = useThemeStore();
+  const onlineStatusService = useRef(null);
 
   const isAuthenticated = Boolean(authUser);
   const isOnboarded = authUser?.isOnboarded;
 
+  // Initialize online status tracking for authenticated users
+  useEffect(() => {
+    if (isAuthenticated && isOnboarded) {
+      if (!onlineStatusService.current) {
+        onlineStatusService.current = new OnlineStatusService();
+        onlineStatusService.current.init();
+      }
+    } else {
+      // Cleanup when user logs out
+      if (onlineStatusService.current) {
+        onlineStatusService.current.destroy();
+        onlineStatusService.current = null;
+      }
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (onlineStatusService.current) {
+        onlineStatusService.current.destroy();
+      }
+    };
+  }, [isAuthenticated, isOnboarded]);
+
   if (isLoading) return <PageLoader />;
 
   return (
-    <div className="h-screen" data-theme={theme}>
-      <Routes>
+    <NotificationProvider>
+      <StreamChatProvider>
+        <div className="h-screen" data-theme={theme}>
+          {/* Global notification listener for authenticated users */}
+          {isAuthenticated && isOnboarded && <StreamChatNotifications />}
+          
+          <Routes>
         <Route
           path="/"
           element={
@@ -128,11 +162,13 @@ const App = () => {
             )
           }
         />
-      </Routes>
+        </Routes>
 
-      <PWAInstallPrompt />
-      <Toaster />
-    </div>
+        <PWAInstallPrompt />
+        <Toaster />
+      </div>
+    </StreamChatProvider>
+  </NotificationProvider>
   );
 };
 export default App;

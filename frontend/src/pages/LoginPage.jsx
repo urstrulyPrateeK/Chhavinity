@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Sparkles, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
+import ChhavimityLogo from "../components/ChhavimityLogo";
 import { Link } from "react-router";
 import useLogin from "../hooks/useLogin";
 
@@ -39,11 +40,8 @@ const LoginPage = () => {
         {/* LOGIN FORM SECTION */}
         <div className="w-full lg:w-3/5 p-8 lg:p-12">
           {/* LOGO */}
-          <div className="mb-8 flex items-center justify-center lg:justify-start gap-3">
-            <Sparkles className="size-10 text-primary animate-pulse" />
-            <span className="text-4xl font-bold font-mono bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-accent tracking-wider">
-              Chhavinity
-            </span>
+          <div className="mb-8 flex items-center justify-center lg:justify-start">
+            <ChhavimityLogo size="xl" showText={true} animate={true} />
           </div>
 
           {/* ERROR MESSAGE DISPLAY */}
@@ -146,7 +144,7 @@ const LoginPage = () => {
           <div className="relative z-10 text-center p-8 max-w-sm">
             <div className="mb-8">
               <div className="w-40 h-40 mx-auto bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-primary/30 relative">
-                <Sparkles className="size-20 text-primary animate-pulse" />
+                <ChhavimityLogo size="2xl" animate={true} />
                 <div className="absolute inset-0 rounded-full border-2 border-primary/30 animate-spin border-t-primary"></div>
               </div>
             </div>

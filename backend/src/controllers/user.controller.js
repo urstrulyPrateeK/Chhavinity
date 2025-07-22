@@ -25,7 +25,7 @@ export async function getMyFriends(req, res) {
   try {
     const user = await User.findById(req.user.id)
       .select("friends")
-      .populate("friends", "fullName profilePic proficientTechStack learningTechStack username bio location");
+      .populate("friends", "fullName profilePic proficientTechStack learningTechStack username bio location lastSeen isOnline createdAt");
 
     res.status(200).json(user.friends);
   } catch (error) {
@@ -263,6 +263,49 @@ export async function removeFriend(req, res) {
     });
   } catch (error) {
     console.error("Error in removeFriend controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+// Update user online status
+export async function updateOnlineStatus(req, res) {
+  try {
+    const userId = req.user.id;
+    const { isOnline } = req.body;
+
+    const updateData = { isOnline };
+    
+    // If going offline, update lastSeen
+    if (!isOnline) {
+      updateData.lastSeen = new Date();
+    }
+
+    await User.findByIdAndUpdate(userId, updateData);
+    
+    res.status(200).json({ 
+      success: true, 
+      message: `Status updated to ${isOnline ? 'online' : 'offline'}` 
+    });
+  } catch (error) {
+    console.error("Error in updateOnlineStatus controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+// Update last seen (called periodically when user is active - just confirms online status)
+export async function updateLastSeen(req, res) {
+  try {
+    const userId = req.user.id;
+    
+    // Just confirm user is online, don't update lastSeen timestamp
+    // lastSeen should only be updated when user goes offline
+    await User.findByIdAndUpdate(userId, { 
+      isOnline: true 
+    });
+    
+    res.status(200).json({ success: true, message: "Online status confirmed" });
+  } catch (error) {
+    console.error("Error in updateLastSeen controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 }

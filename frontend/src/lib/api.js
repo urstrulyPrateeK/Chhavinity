@@ -69,6 +69,11 @@ export async function ensureStreamUser(userId) {
   return response.data;
 }
 
+export async function createVideoCall(targetUserId) {
+  const response = await axiosInstance.post("/chat/create-video-call", { targetUserId });
+  return response.data;
+}
+
 // Username-related functions
 export async function checkUsernameAvailability(username) {
   const response = await axiosInstance.get(`/auth/check-username/${username}`);

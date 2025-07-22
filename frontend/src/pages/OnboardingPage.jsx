@@ -3,7 +3,8 @@ import useAuthUser from "../hooks/useAuthUser";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { completeOnboarding } from "../lib/api";
-import { CameraIcon, LoaderIcon, MapPinIcon, Sparkles, ShuffleIcon, X, Plus } from "lucide-react";
+import { CameraIcon, LoaderIcon, MapPinIcon, ShuffleIcon, X, Plus } from "lucide-react";
+import ChhavimityLogo from "../components/ChhavimityLogo";
 import { TECH_STACKS } from "../constants";
 
 const OnboardingPage = () => {
@@ -300,8 +301,8 @@ const OnboardingPage = () => {
             <button className="btn btn-primary w-full" disabled={isPending} type="submit">
               {!isPending ? (
                 <>
-                  <Sparkles className="size-5 mr-2" />
-                  Complete Onboarding
+                  <ChhavimityLogo size="xs" />
+                  <span className="ml-2">Complete Onboarding</span>
                 </>
               ) : (
                 <>

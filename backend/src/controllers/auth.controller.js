@@ -104,6 +104,11 @@ export async function login(req, res) {
     const isPasswordCorrect = await user.matchPassword(password);
     if (!isPasswordCorrect) return res.status(401).json({ message: "Invalid email/username or password" });
 
+    // Set user as online
+    user.isOnline = true;
+    user.lastSeen = new Date();
+    await user.save();
+
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET_KEY, {
       expiresIn: "7d",
     });
@@ -122,7 +127,19 @@ export async function login(req, res) {
   }
 }
 
-export function logout(req, res) {
+export async function logout(req, res) {
+  try {
+    // Set user as offline if they're authenticated
+    if (req.user) {
+      await User.findByIdAndUpdate(req.user.id, {
+        isOnline: false,
+        lastSeen: new Date()
+      });
+    }
+  } catch (error) {
+    console.log("Error updating offline status during logout:", error.message);
+  }
+  
   res.clearCookie("jwt");
   res.status(200).json({ success: true, message: "Logout successful" });
 }

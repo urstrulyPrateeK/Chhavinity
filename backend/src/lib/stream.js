@@ -8,7 +8,18 @@ if (!apiKey || !apiSecret) {
   console.error("Stream API key or Secret is missing");
 }
 
-const streamClient = StreamChat.getInstance(apiKey, apiSecret);
+const streamClient = StreamChat.getInstance(apiKey, apiSecret, {
+  timeout: 10000, // 10 seconds timeout
+  logger: (logLevel, message, extraData) => {
+    if (logLevel === 'error') {
+      console.error('Stream error:', message, extraData);
+    }
+  }
+});
+
+export const getStreamClient = () => {
+  return streamClient;
+};
 
 export const upsertStreamUser = async (userData) => {
   try {

@@ -1,0 +1,50 @@
+/* Minimal Chat Container Enhancement - Only Outer Styling */
+
+/* Only style the outer container, leave Stream Chat components in their default state */
+.chat-container-enhanced {
+  background: linear-gradient(135deg, hsl(var(--b1)) 0%, hsl(var(--b2)) 100%);
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 
+    0 20px 25px -5px rgb(0 0 0 / 0.1),
+    0 8px 10px -6px rgb(0 0 0 / 0.1),
+    inset 0 1px 0 0 hsl(var(--b3));
+  border: 1px solid hsl(var(--b3));
+}
+
+/* Ensure Stream Chat keeps its default styling */
+.chat-container-enhanced .str-chat {
+  background: white !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
+  height: 100% !important;
+  width: 100% !important;
+}
+
+/* Mobile responsive adjustments for container only */
+@media (max-width: 640px) {
+  .chat-container-enhanced {
+    border-radius: 0;
+    margin: 0;
+    box-shadow: none;
+    border: none;
+  }
+}
+
+/* Tablet responsive design */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .chat-container-enhanced {
+    border-radius: 0.75rem;
+    margin: 0.5rem;
+  }
+}
+
+/* Desktop optimizations */
+@media (min-width: 1025px) {
+  .chat-container-enhanced {
+    border-radius: 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+}

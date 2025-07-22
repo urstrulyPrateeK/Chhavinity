@@ -12,6 +12,17 @@ const HomePage = () => {
     queryFn: getUserFriends,
   });
 
+  // Temporarily disable online status sync to fix chat navigation
+  // useEffect(() => {
+  //   if (friends.length > 0 && syncOnlineStatusFromBackend) {
+  //     try {
+  //       syncOnlineStatusFromBackend(friends);
+  //     } catch (error) {
+  //       console.log('Online status sync failed, continuing normally:', error);
+  //     }
+  //   }
+  // }, [friends, syncOnlineStatusFromBackend]);
+
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="container mx-auto space-y-8">

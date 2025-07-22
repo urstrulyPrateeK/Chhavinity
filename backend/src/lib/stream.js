@@ -1,9 +1,9 @@
 import { StreamChat } from "stream-chat";
 import "dotenv/config";
 
-// Stream API credentials with correct fallbacks
-const apiKey = process.env.STREAM_API_KEY || "cmudsbk7ru8y";
-const apiSecret = process.env.STREAM_API_SECRET || "ajfj4pehzb8h3u39aeyn4sth7qtzaft88mvb6zzwm7dr8ppgnx94kz6n2dbky56b";
+// Stream API credentials with working demo fallbacks
+const apiKey = process.env.STREAM_API_KEY || "8br4watd788t";
+const apiSecret = process.env.STREAM_API_SECRET || "gthv2k5xzqfn";
 
 console.log("🔑 Stream API Key:", apiKey ? `✅ Found: ${apiKey}` : "❌ Missing");
 console.log("🔑 Stream API Secret:", apiSecret ? "✅ Found" : "❌ Missing");

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Icon Generator</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #1d232a;
+            color: white;
+        }
+        .icon-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+        }
+        .icon {
+            border-radius: 20%;
+            background: linear-gradient(135deg, #ff7ac6 0%, #bf95f9 50%, #ffb457 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 32px rgba(255, 122, 198, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .icon::before {
+            content: '';
+            position: absolute;
+            top: 10%;
+            left: 10%;
+            right: 10%;
+            bottom: 10%;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15%;
+            backdrop-filter: blur(10px);
+        }
+        .icon-text {
+            position: relative;
+            z-index: 2;
+            font-family: 'Arial Black', sans-serif;
+        }
+        .size-72 { width: 72px; height: 72px; font-size: 24px; }
+        .size-96 { width: 96px; height: 96px; font-size: 32px; }
+        .size-128 { width: 128px; height: 128px; font-size: 42px; }
+        .size-144 { width: 144px; height: 144px; font-size: 48px; }
+        .size-152 { width: 152px; height: 152px; font-size: 50px; }
+        .size-192 { width: 192px; height: 192px; font-size: 64px; }
+        .size-384 { width: 384px; height: 384px; font-size: 128px; }
+        .size-512 { width: 512px; height: 512px; font-size: 170px; }
+        canvas { display: none; }
+        .download-section {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .download-btn {
+            background: linear-gradient(135deg, #ff7ac6, #bf95f9);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: bold;
+        }
+        .download-btn:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center; color: #ff7ac6;">Chhavinity App Icons</h1>
+    
+    <div class="download-section">
+        <button class="download-btn" onclick="downloadAllIcons()">Download All Icons</button>
+    </div>
+
+    <div class="icon-container">
+        <div class="icon size-72" data-size="72">
+            <span class="icon-text">C</span>
+        </div>
+        <div class="icon size-96" data-size="96">
+            <span class="icon-text">C</span>
+        </div>
+        <div class="icon size-128" data-size="128">
+            <span class="icon-text">C</span>
+        </div>
+        <div class="icon size-144" data-size="144">
+            <span class="icon-text">C</span>
+        </div>
+        <div class="icon size-152" data-size="152">
+            <span class="icon-text">C</span>
+        </div>
+        <div class="icon size-192" data-size="192">
+            <span class="icon-text">C</span>
+        </div>
+        <div class="icon size-384" data-size="384">
+            <span class="icon-text">C</span>
+        </div>
+        <div class="icon size-512" data-size="512">
+            <span class="icon-text">C</span>
+        </div>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+        function createIconCanvas(size) {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = size;
+            canvas.height = size;
+            
+            // Create gradient background
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#ff7ac6');
+            gradient.addColorStop(0.5, '#bf95f9');
+            gradient.addColorStop(1, '#ffb457');
+            
+            // Draw rounded rectangle background
+            const radius = size * 0.2;
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.roundRect(0, 0, size, size, radius);
+            ctx.fill();
+            
+            // Add glass effect overlay
+            const overlayGradient = ctx.createLinearGradient(0, 0, size, size);
+            overlayGradient.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
+            overlayGradient.addColorStop(1, 'rgba(255, 255, 255, 0.05)');
+            
+            ctx.fillStyle = overlayGradient;
+            ctx.beginPath();
+            ctx.roundRect(size * 0.1, size * 0.1, size * 0.8, size * 0.8, radius * 0.7);
+            ctx.fill();
+            
+            // Draw the "C" letter
+            ctx.fillStyle = 'white';
+            ctx.font = `bold ${size * 0.6}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+            ctx.shadowBlur = size * 0.02;
+            ctx.shadowOffsetY = size * 0.01;
+            
+            ctx.fillText('C', size / 2, size / 2);
+            
+            return canvas;
+        }
+
+        function downloadIcon(size) {
+            const canvas = createIconCanvas(size);
+            const link = document.createElement('a');
+            link.download = `icon-${size}x${size}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        function downloadAllIcons() {
+            const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+            sizes.forEach((size, index) => {
+                setTimeout(() => downloadIcon(size), index * 500);
+            });
+        }
+
+        // Add click listeners to icons
+        document.querySelectorAll('.icon').forEach(icon => {
+            icon.addEventListener('click', () => {
+                const size = parseInt(icon.dataset.size);
+                downloadIcon(size);
+            });
+            icon.style.cursor = 'pointer';
+            icon.title = `Click to download ${icon.dataset.size}x${icon.dataset.size} icon`;
+        });
+
+        // Support for roundRect if not available
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
+                this.moveTo(x + radius, y);
+                this.lineTo(x + width - radius, y);
+                this.quadraticCurveTo(x + width, y, x + width, y + radius);
+                this.lineTo(x + width, y + height - radius);
+                this.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                this.lineTo(x + radius, y + height);
+                this.quadraticCurveTo(x, y + height, x, y + height - radius);
+                this.lineTo(x, y + radius);
+                this.quadraticCurveTo(x, y, x + radius, y);
+            };
+        }
+    </script>
+</body>
+</html>

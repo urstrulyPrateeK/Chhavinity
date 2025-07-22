@@ -136,53 +136,53 @@ const FriendsPage = () => {
   }, [outgoingFriendReqs]);
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8">
-      <div className="container mx-auto space-y-8">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div className="p-3 md:p-6 lg:p-8">
+      <div className="container mx-auto space-y-6 md:space-y-8">
+        <div className="flex flex-col gap-3 md:gap-4">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Meet New Learners</h2>
-            <p className="opacity-70">
+            <h2 className="text-xl md:text-2xl lg:text-3xl font-bold tracking-tight">Meet New Learners</h2>
+            <p className="opacity-70 text-sm md:text-base">
               Discover perfect tech partners based on your profile
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
-              className="btn btn-secondary btn-sm"
+              className="btn btn-secondary btn-sm flex-1 min-w-0 md:flex-none"
               onClick={() => setIsEditModalOpen(true)}
             >
-              <Edit2Icon className="mr-2 size-4" />
-              Edit Profile
+              <Edit2Icon className="mr-1 md:mr-2 size-3 md:size-4" />
+              <span className="truncate">Edit Profile</span>
             </button>
-            <Link to="/" className="btn btn-outline btn-sm">
-              <HomeIcon className="mr-2 size-4" />
-              My Friends
+            <Link to="/" className="btn btn-outline btn-sm flex-1 min-w-0 md:flex-none">
+              <HomeIcon className="mr-1 md:mr-2 size-3 md:size-4" />
+              <span className="truncate">My Friends</span>
             </Link>
-            <Link to="/remove-friends" className="btn btn-outline btn-error btn-sm">
-              <UserMinusIcon className="mr-2 size-4" />
-              Remove Friends
+            <Link to="/remove-friends" className="btn btn-outline btn-error btn-sm flex-1 min-w-0 md:flex-none">
+              <UserMinusIcon className="mr-1 md:mr-2 size-3 md:size-4" />
+              <span className="truncate">Remove Friends</span>
             </Link>
-            <Link to="/notifications" className="btn btn-outline btn-sm">
-              <UsersIcon className="mr-2 size-4" />
-              Friend Requests
+            <Link to="/notifications" className="btn btn-outline btn-sm flex-1 min-w-0 md:flex-none">
+              <UsersIcon className="mr-1 md:mr-2 size-3 md:size-4" />
+              <span className="truncate">Friend Requests</span>
             </Link>
           </div>
         </div>
 
         {/* Username Search Section */}
-        <div className="card bg-base-200 p-6">
-          <div className="space-y-4">
+        <div className="card bg-base-200 p-4 md:p-6">
+          <div className="space-y-3 md:space-y-4">
             <div className="flex items-center gap-2">
-              <SearchIcon className="size-5" />
-              <h3 className="text-lg font-semibold">Find Friends by Username</h3>
+              <SearchIcon className="size-4 md:size-5" />
+              <h3 className="text-base md:text-lg font-semibold">Find Friends by Username</h3>
             </div>
             
-            <form onSubmit={handleSearchSubmit} className="space-y-4">
-              <div className="flex gap-3">
+            <form onSubmit={handleSearchSubmit} className="space-y-3 md:space-y-4">
+              <div className="flex gap-2 md:gap-3">
                 <div className="form-control flex-1">
                   <input
                     type="text"
                     placeholder="Enter username to search"
-                    className="input input-bordered w-full focus:input-primary"
+                    className="input input-bordered input-sm md:input-md w-full focus:input-primary"
                     value={searchUsername}
                     onChange={(e) => setSearchUsername(e.target.value)}
                     required
@@ -190,13 +190,13 @@ const FriendsPage = () => {
                 </div>
                 <button
                   type="submit"
-                  className="btn btn-primary px-6"
+                  className="btn btn-primary btn-sm md:btn-md px-4 md:px-6"
                   disabled={isSearching || !searchUsername.trim()}
                 >
                   {isSearching ? (
                     <>
-                      <span className="loading loading-spinner loading-sm"></span>
-                      Searching...
+                      <span className="loading loading-spinner loading-xs md:loading-sm"></span>
+                      <span className="hidden md:inline">Searching...</span>
                     </>
                   ) : (
                     <>

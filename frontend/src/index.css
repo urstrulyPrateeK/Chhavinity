@@ -2,6 +2,40 @@
 @tailwind components;
 @tailwind utilities;
 
+/* PWA Mobile Optimizations */
+@layer utilities {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+  
+  .tap-highlight-none {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Mobile-first responsive improvements */
+@media (max-width: 768px) {
+  /* Improve touch targets */
+  .btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Better text sizing for mobile */
+  .text-xs { font-size: 0.75rem; }
+  .text-sm { font-size: 0.875rem; }
+  .text-base { font-size: 1rem; }
+  
+  /* Compact spacing for mobile */
+  .space-y-2 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0.5rem;
+  }
+}
+
 .str-chat__channel {
   display: flex;
   align-items: center;
@@ -18,6 +52,15 @@
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   overflow: hidden;
+}
+
+/* Mobile optimizations for chat */
+@media (max-width: 768px) {
+  .str-chat__container {
+    height: 100% !important;
+    border-radius: 0;
+    margin: 0 !important;
+  }
 }
 
 .str-chat__list {

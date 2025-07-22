@@ -4,6 +4,7 @@ import { Link } from "react-router";
 
 import useSignUp from "../hooks/useSignUp";
 import ChhavimityLogo from "../components/ChhavimityLogo";
+import { checkUsernameAvailability } from "../lib/api";
 
 const SignUpPage = () => {
   const [signupData, setSignupData] = useState({
@@ -36,7 +37,7 @@ const SignUpPage = () => {
   const { isPending, error, signupMutation } = useSignUp();
 
   // Username availability check - simplified
-  const checkUsernameAvailability = async (username) => {
+  const checkUsernameAvailabilityHandler = async (username) => {
     if (!username || username.length < 1) {
       setUsernameCheck({ checking: false, available: null, message: "" });
       setUsernameSuggestions([]);
@@ -46,14 +47,7 @@ const SignUpPage = () => {
     setUsernameCheck({ checking: true, available: null, message: "" });
 
     try {
-      const response = await fetch(`http://localhost:5001/api/auth/check-username/${username}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      const data = await response.json();
+      const data = await checkUsernameAvailability(username);
       
       setUsernameCheck({
         checking: false,
@@ -104,7 +98,7 @@ const SignUpPage = () => {
   const selectSuggestion = (suggestion) => {
     setSignupData({ ...signupData, username: suggestion });
     setUsernameSuggestions([]);
-    checkUsernameAvailability(suggestion);
+    checkUsernameAvailabilityHandler(suggestion);
   };
 
   const handleUsernameChange = (e) => {
@@ -114,7 +108,7 @@ const SignUpPage = () => {
     // Debounce username check
     clearTimeout(window.usernameCheckTimeout);
     window.usernameCheckTimeout = setTimeout(() => {
-      checkUsernameAvailability(username);
+      checkUsernameAvailabilityHandler(username);
     }, 300); // Reduced debounce time for better UX
   };
 

@@ -30,13 +30,22 @@ app.get("/api/health", (req, res) => {
   res.status(200).json({ 
     status: "OK", 
     message: "Chhavinity backend is healthy!",
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
   });
 });
 
 // Additional health check at root for Railway
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "OK" });
+});
+
+// Keep-alive endpoint to prevent sleeping
+app.get("/api/ping", (req, res) => {
+  res.status(200).json({ 
+    message: "pong",
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Root route

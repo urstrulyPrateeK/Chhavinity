@@ -20,6 +20,7 @@ import {
 import "@stream-io/video-react-sdk/dist/css/styles.css";
 import toast from "react-hot-toast";
 import PageLoader from "../components/PageLoader";
+import SimplePeerCall from "../components/SimplePeerCall";
 
 const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY || "9nddtpt77s6p";
 
@@ -31,6 +32,7 @@ const CallPage = () => {
   const [call, setCall] = useState(null);
   const [isConnecting, setIsConnecting] = useState(true);
   const [isPopupWindow, setIsPopupWindow] = useState(false);
+  const [useSimplePeer, setUseSimplePeer] = useState(false);
 
   const { authUser, isLoading } = useAuthUser();
   const { endActiveCall, activeCalls } = useNotifications();
@@ -41,6 +43,13 @@ const CallPage = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const isPopup = urlParams.get('popup') === 'true' || !!window.opener;
     setIsPopupWindow(isPopup);
+    
+    // Check if we should use SimplePeer directly
+    if (urlParams.get('simple') === 'true') {
+      setUseSimplePeer(true);
+      setIsConnecting(false);
+      return;
+    }
     
     if (isPopup) {
       console.log("Call page opened as popup window");
@@ -168,7 +177,9 @@ const CallPage = () => {
         console.error("Error stack:", error.stack);
         
         if (error.message.includes("404") || error.message.includes("NOT_FOUND")) {
-          toast.error("Stream Video API not enabled. Please enable Video API in your Stream dashboard.");
+          console.log("Stream Video API not available, switching to SimplePeer");
+          toast.info("Using alternative video calling system");
+          setUseSimplePeer(true);
         } else if (error.message.includes("401") || error.message.includes("UNAUTHORIZED")) {
           toast.error("Invalid Stream credentials. Please check your API key and token.");
         } else {
@@ -217,7 +228,12 @@ const CallPage = () => {
     };
   }, [tokenData, authUser, callId]);
 
-  if (isLoading || isConnecting) return <PageLoader />;
+  if (isLoading || (isConnecting && !useSimplePeer)) return <PageLoader />;
+
+  // Use SimplePeer if Stream Video failed or requested
+  if (useSimplePeer) {
+    return <SimplePeerCall callId={callId} isPopupWindow={isPopupWindow} />;
+  }
 
   return (
     <div className="h-screen flex flex-col items-center justify-center">
@@ -233,8 +249,21 @@ const CallPage = () => {
             </StreamCall>
           </StreamVideo>
         ) : (
-          <div className="flex items-center justify-center h-full">
-            <p>Could not initialize call. Please refresh or try again later.</p>
+          <div className="flex flex-col items-center justify-center h-full gap-4">
+            <p className="text-lg">Could not initialize Stream video call</p>
+            <p className="text-sm opacity-70">Stream Video API not available</p>
+            <button 
+              onClick={() => setUseSimplePeer(true)}
+              className="btn btn-primary"
+            >
+              Use Alternative Video Call
+            </button>
+            <button 
+              onClick={() => window.location.reload()}
+              className="btn btn-secondary"
+            >
+              Refresh Page
+            </button>
           </div>
         )}
       </div>

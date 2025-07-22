@@ -7,8 +7,8 @@ import channelWatchService from "../services/ChannelWatchService";
 
 const StreamChatContext = createContext();
 
-// Stream API Key with working demo fallback
-const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY || "8br4watd788t";
+// Stream API Key with your fresh API key
+const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY || "9nddtpt77s6p";
 
 console.log("🔑 Stream API Key:", STREAM_API_KEY ? `✅ Found: ${STREAM_API_KEY}` : "❌ Missing");
 console.log("🌍 Environment:", import.meta.env.MODE || "production");

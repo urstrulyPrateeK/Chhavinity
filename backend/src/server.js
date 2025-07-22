@@ -48,6 +48,20 @@ app.get("/api/ping", (req, res) => {
   });
 });
 
+// Debug endpoint to check environment and cookie settings
+app.get("/api/debug", (req, res) => {
+  res.status(200).json({
+    nodeEnv: process.env.NODE_ENV,
+    cookieSettings: {
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true
+    },
+    headers: req.headers,
+    cookies: req.cookies
+  });
+});
+
 // Root route
 app.use(express.json());
 app.use(cookieParser());

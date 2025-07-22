@@ -11,15 +11,19 @@ import cookieParser from "cookie-parser";
 const app = express();
 const PORT = process.env.PORT || 5001; 
 
-// CORS configuration
+// CORS configuration - Temporary wildcard for testing
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://chhavinity.vercel.app", // Your main Vercel domain
-    process.env.FRONTEND_URL
-  ].filter(Boolean),
-  credentials: true
+  origin: true, // Allow all origins temporarily
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
 }));
+
+// Debug middleware
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path} - Origin: ${req.get('Origin')}`);
+  next();
+});
 
 // Health check endpoint for Railway
 app.get("/api/health", (req, res) => {

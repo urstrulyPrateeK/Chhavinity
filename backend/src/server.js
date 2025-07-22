@@ -15,8 +15,7 @@ const PORT = process.env.PORT || 5001;
 app.use(cors({
   origin: [
     "http://localhost:5173",
-    "https://chhavinity.vercel.app", // Your Vercel domain
-    "https://your-vercel-domain.vercel.app", // Replace with actual Vercel URL
+    "https://chhavinity.vercel.app", // Your main Vercel domain
     process.env.FRONTEND_URL
   ].filter(Boolean),
   credentials: true

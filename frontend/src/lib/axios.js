@@ -8,10 +8,18 @@ export const axiosInstance = axios.create({
   withCredentials: true, // send cookies with the request
 });
 
-// Add request interceptor for debugging
+// Add request interceptor for debugging and auth token
 axiosInstance.interceptors.request.use(
   (config) => {
     console.log(`🔵 API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
+    
+    // Add Authorization header if token exists in localStorage
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+      console.log("🔑 Added auth token to request");
+    }
+    
     return config;
   },
   (error) => {
@@ -34,6 +42,9 @@ axiosInstance.interceptors.response.use(
     if (error.response?.status === 401) {
       console.log("🔴 401 Unauthorized - Cookie issue or session expired");
       console.log("Request headers:", error.config?.headers);
+      
+      // Clear stored token on 401
+      localStorage.removeItem('authToken');
     }
     
     return Promise.reject(error);

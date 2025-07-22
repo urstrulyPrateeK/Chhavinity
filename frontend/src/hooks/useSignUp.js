@@ -9,10 +9,16 @@ const useSignUp = () => {
     onSuccess: async (data) => {
       console.log("🟢 Signup successful, setting auth data:", data);
       
+      // Store token in localStorage for cross-domain compatibility
+      if (data.token) {
+        localStorage.setItem('authToken', data.token);
+        console.log("🔑 Token stored in localStorage");
+      }
+      
       // Manually set the auth user data instead of just invalidating
       queryClient.setQueryData(["authUser"], { user: data.user });
       
-      // Add a small delay to ensure cookie is properly set
+      // Add a small delay to ensure token is properly stored
       setTimeout(() => {
         console.log("🔄 Invalidating queries after signup...");
         queryClient.invalidateQueries({ queryKey: ["authUser"] });

@@ -10,7 +10,16 @@ const useLogout = () => {
     error,
   } = useMutation({
     mutationFn: logout,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["authUser"] }),
+    onSuccess: () => {
+      // Clear token from localStorage
+      localStorage.removeItem('authToken');
+      console.log("🔑 Token cleared from localStorage");
+      
+      // Clear auth state
+      queryClient.setQueryData(["authUser"], null);
+      queryClient.invalidateQueries({ queryKey: ["authUser"] });
+      queryClient.invalidateQueries({ queryKey: ["streamToken"] });
+    },
   });
 
   return { logoutMutation, isPending, error };

@@ -16,10 +16,14 @@ export const logout = async () => {
 
 export const getAuthUser = async () => {
   try {
+    console.log("Attempting to get auth user...");
     const res = await axiosInstance.get("/auth/me");
+    console.log("✅ getAuthUser success:", res.data);
     return res.data;
   } catch (error) {
-    console.log("Error in getAuthUser:", error);
+    console.log("❌ Error in getAuthUser:", error);
+    console.log("Error response:", error.response?.data);
+    console.log("Error status:", error.response?.status);
     return null;
   }
 };
@@ -60,8 +64,17 @@ export async function acceptFriendRequest(requestId) {
 }
 
 export async function getStreamToken() {
-  const response = await axiosInstance.get("/chat/token");
-  return response.data;
+  try {
+    console.log("Attempting to get Stream token...");
+    const response = await axiosInstance.get("/chat/token");
+    console.log("✅ getStreamToken success:", response.data);
+    return response.data;
+  } catch (error) {
+    console.log("❌ Error in getStreamToken:", error);
+    console.log("Error response:", error.response?.data);
+    console.log("Error status:", error.response?.status);
+    throw error;
+  }
 }
 
 export async function ensureStreamUser(userId) {

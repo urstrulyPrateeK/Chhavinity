@@ -5,11 +5,18 @@ const useLogin = () => {
   const queryClient = useQueryClient();
   const { mutate, isPending, error } = useMutation({
     mutationFn: login,
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
+      console.log("🟢 Login successful, setting auth data:", data);
+      
       // Manually set the auth user data instead of just invalidating
       queryClient.setQueryData(["authUser"], { user: data.user });
-      // Also invalidate to ensure fresh data on next fetch
-      queryClient.invalidateQueries({ queryKey: ["authUser"] });
+      
+      // Add a small delay to ensure cookie is properly set
+      setTimeout(() => {
+        console.log("🔄 Invalidating queries after login...");
+        queryClient.invalidateQueries({ queryKey: ["authUser"] });
+        queryClient.invalidateQueries({ queryKey: ["streamToken"] });
+      }, 100);
     },
   });
 

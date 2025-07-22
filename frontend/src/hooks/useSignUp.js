@@ -6,11 +6,18 @@ const useSignUp = () => {
 
   const { mutate, isPending, error } = useMutation({
     mutationFn: signup,
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
+      console.log("🟢 Signup successful, setting auth data:", data);
+      
       // Manually set the auth user data instead of just invalidating
       queryClient.setQueryData(["authUser"], { user: data.user });
-      // Also invalidate to ensure fresh data on next fetch
-      queryClient.invalidateQueries({ queryKey: ["authUser"] });
+      
+      // Add a small delay to ensure cookie is properly set
+      setTimeout(() => {
+        console.log("🔄 Invalidating queries after signup...");
+        queryClient.invalidateQueries({ queryKey: ["authUser"] });
+        queryClient.invalidateQueries({ queryKey: ["streamToken"] });
+      }, 100);
     },
   });
 

@@ -21,6 +21,7 @@ import "@stream-io/video-react-sdk/dist/css/styles.css";
 import toast from "react-hot-toast";
 import PageLoader from "../components/PageLoader";
 import SimplePeerCall from "../components/SimplePeerCall";
+import BasicVideoCall from "../components/BasicVideoCall";
 
 const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY || "9nddtpt77s6p";
 
@@ -44,8 +45,9 @@ const CallPage = () => {
     const isPopup = urlParams.get('popup') === 'true' || !!window.opener;
     setIsPopupWindow(isPopup);
     
-    // Check if we should use SimplePeer directly
-    if (urlParams.get('simple') === 'true') {
+    // Check if we should use SimplePeer directly or force it for now
+    if (urlParams.get('simple') === 'true' || true) { // Force SimplePeer for now
+      console.log("Using SimplePeer video calling");
       setUseSimplePeer(true);
       setIsConnecting(false);
       return;
@@ -232,7 +234,8 @@ const CallPage = () => {
 
   // Use SimplePeer if Stream Video failed or requested
   if (useSimplePeer) {
-    return <SimplePeerCall callId={callId} isPopupWindow={isPopupWindow} />;
+    // For now, use the basic video call that works immediately
+    return <BasicVideoCall />;
   }
 
   return (
@@ -256,7 +259,7 @@ const CallPage = () => {
               onClick={() => setUseSimplePeer(true)}
               className="btn btn-primary"
             >
-              Use Alternative Video Call
+              Start Video Call Now
             </button>
             <button 
               onClick={() => window.location.reload()}

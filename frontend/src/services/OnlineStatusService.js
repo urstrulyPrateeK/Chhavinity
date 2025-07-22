@@ -1,4 +1,5 @@
 // Online status management service
+import { axiosInstance } from '../lib/axios';
 
 class OnlineStatusService {
   constructor() {
@@ -35,24 +36,17 @@ class OnlineStatusService {
     if (this.isOnline) return;
     
     try {
-      const response = await fetch('/api/users/online-status', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ isOnline: true })
+      const response = await axiosInstance.put('/users/online-status', {
+        isOnline: true
       });
 
-      if (response.ok) {
+      if (response.status === 200) {
         this.isOnline = true;
         this.startHeartbeat();
         console.log('✅ User set to online');
-      } else {
-        console.error('❌ Failed to set online status:', response.status);
       }
     } catch (error) {
-      console.error('❌ Error setting online status:', error);
+      console.error('❌ Failed to set online status:', error.response?.status || error.message);
     }
   }
 
@@ -60,22 +54,17 @@ class OnlineStatusService {
     if (!this.isOnline) return;
     
     try {
-      const response = await fetch('/api/users/online-status', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ isOnline: false })
+      const response = await axiosInstance.put('/users/online-status', {
+        isOnline: false
       });
 
-      if (response.ok) {
+      if (response.status === 200) {
         this.isOnline = false;
         this.stopHeartbeat();
         console.log('📴 User status set to offline');
       }
     } catch (error) {
-      console.error('Error setting offline status:', error);
+      console.error('Error setting offline status:', error.response?.status || error.message);
     }
   }
 
@@ -100,16 +89,10 @@ class OnlineStatusService {
       // Only send heartbeat if user is truly active (visible tab + focused window)
       if (this.isOnline && this.isTabVisible && this.isWindowFocused && timeSinceActivity < 60 * 1000) {
         try {
-          await fetch('/api/users/last-seen', {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-          });
+          await axiosInstance.put('/users/last-seen');
           console.log('💓 Heartbeat: Confirmed online status');
         } catch (error) {
-          console.error('Error updating online status:', error);
+          console.error('Error updating online status:', error.response?.status || error.message);
         }
       }
     }, 60000); // 1 minute interval

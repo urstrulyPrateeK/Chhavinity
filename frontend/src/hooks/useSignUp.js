@@ -6,7 +6,12 @@ const useSignUp = () => {
 
   const { mutate, isPending, error } = useMutation({
     mutationFn: signup,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["authUser"] }),
+    onSuccess: (data) => {
+      // Manually set the auth user data instead of just invalidating
+      queryClient.setQueryData(["authUser"], { user: data.user });
+      // Also invalidate to ensure fresh data on next fetch
+      queryClient.invalidateQueries({ queryKey: ["authUser"] });
+    },
   });
 
   return { isPending, error, signupMutation: mutate };

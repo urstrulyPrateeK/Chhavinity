@@ -14,12 +14,24 @@ const PORT = process.env.PORT || 5001;
 
 // CORS configuration
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: [
+    "http://localhost:5173",
+    "https://chhavinity.vercel.app", // Add your Vercel domain here
+    process.env.FRONTEND_URL
+  ].filter(Boolean),
   credentials: true
 }));
 
-// Root route
+// Health check endpoint for Railway
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ 
+    status: "OK", 
+    message: "Chhavinity backend is healthy!",
+    timestamp: new Date().toISOString()
+  });
+});
 
+// Root route
 app.use(express.json());
 app.use(cookieParser());
 app.get("/", (req, res) => {

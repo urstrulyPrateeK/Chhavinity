@@ -20,7 +20,6 @@ import {
 import "@stream-io/video-react-sdk/dist/css/styles.css";
 import toast from "react-hot-toast";
 import PageLoader from "../components/PageLoader";
-import WebRTCCall from "../components/WebRTCCall";
 
 const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY || "9nddtpt77s6p";
 
@@ -32,8 +31,6 @@ const CallPage = () => {
   const [call, setCall] = useState(null);
   const [isConnecting, setIsConnecting] = useState(true);
   const [isPopupWindow, setIsPopupWindow] = useState(false);
-  const [useWebRTC, setUseWebRTC] = useState(false);
-  const [otherUserId, setOtherUserId] = useState(null);
 
   const { authUser, isLoading } = useAuthUser();
   const { endActiveCall, activeCalls } = useNotifications();
@@ -44,19 +41,6 @@ const CallPage = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const isPopup = urlParams.get('popup') === 'true' || !!window.opener;
     setIsPopupWindow(isPopup);
-    
-    // Extract other user ID from URL params if available
-    const otherUser = urlParams.get('with');
-    if (otherUser) {
-      setOtherUserId(otherUser);
-    } else {
-      // Try to find other user from active calls
-      Object.entries(activeCalls || {}).forEach(([userId, callInfo]) => {
-        if (callInfo.callId === callId && userId !== authUser?._id) {
-          setOtherUserId(userId);
-        }
-      });
-    }
     
     if (isPopup) {
       console.log("Call page opened as popup window");
@@ -155,54 +139,18 @@ const CallPage = () => {
           token: tokenData.token,
         });
 
-        // Try different call types in order of preference
-        const callTypes = ["default", "video", "livestream", "audio_room"];
-        let callInstance = null;
-        let successfulCallType = null;
-
-        for (const callType of callTypes) {
-          try {
-            console.log(`Trying call type: ${callType} with ID: ${callId}`);
-            callInstance = videoClient.call(callType, callId);
-            
-            console.log(`Attempting to join call with type: ${callType}...`);
-            await callInstance.join({ create: true });
-            
-            successfulCallType = callType;
-            console.log(`Successfully joined call with type: ${callType}`);
-            break;
-            
-          } catch (error) {
-            console.error(`Failed with call type ${callType}:`, error);
-            callInstance = null;
-            
-            // If this is the last call type, throw the error
-            if (callType === callTypes[callTypes.length - 1]) {
-              throw new Error(`All call types failed. Last error: ${error.message}`);
-            }
-          }
-        }
-
-        if (!callInstance) {
-          throw new Error("Could not create call with any supported call type");
-        }
-
+        const callInstance = videoClient.call("default", callId);
+        await callInstance.join({ create: true });
+        
+        console.log("Joined call successfully");
         setClient(videoClient);
         setCall(callInstance);
         
-        toast.success(`Connected to video call! (Type: ${successfulCallType})`);
+        toast.success("Connected to video call!");
 
       } catch (error) {
         console.error("Error joining call:", error);
-        
-        // Check if this is a Video API not enabled error
-        if (error.message.includes("NOT_FOUND") || error.message.includes("404")) {
-          console.log("Stream Video API not available, falling back to WebRTC");
-          toast.info("Using WebRTC video calling (Stream Video not available)");
-          setUseWebRTC(true);
-        } else {
-          toast.error("Could not join the call. Please try again.");
-        }
+        toast.error("Could not join the call. Please try again.");
       } finally {
         setIsConnecting(false);
       }
@@ -248,23 +196,6 @@ const CallPage = () => {
 
   if (isLoading || isConnecting) return <PageLoader />;
 
-  // Use WebRTC fallback if Stream Video failed
-  if (useWebRTC) {
-    return (
-      <WebRTCCall 
-        callId={callId}
-        otherUserId={otherUserId}
-        onEnd={() => {
-          if (isPopupWindow || window.opener) {
-            window.close();
-          } else {
-            window.location.href = '/';
-          }
-        }}
-      />
-    );
-  }
-
   return (
     <div className="h-screen flex flex-col items-center justify-center">
       <div className="relative">
@@ -279,21 +210,8 @@ const CallPage = () => {
             </StreamCall>
           </StreamVideo>
         ) : (
-          <div className="flex flex-col items-center justify-center h-full gap-4">
-            <p className="text-lg">Could not initialize Stream video call</p>
-            <p className="text-sm opacity-70">Stream Video API might not be enabled</p>
-            <button 
-              onClick={() => setUseWebRTC(true)}
-              className="btn btn-primary"
-            >
-              Try WebRTC Video Call
-            </button>
-            <button 
-              onClick={() => window.location.reload()}
-              className="btn btn-secondary"
-            >
-              Refresh Page
-            </button>
+          <div className="flex items-center justify-center h-full">
+            <p>Could not initialize call. Please refresh or try again later.</p>
           </div>
         )}
       </div>

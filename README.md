@@ -1,4 +1,4 @@
-# Chhavinity - Chat Application
+# Chhavinity - Chat Application with Stream
 
 A full-stack chat application built with React.js frontend and Node.js backend.
 
